@@ -892,6 +892,7 @@ const freqOptions=sel=>[1,2,3,4,5,6,7].map(n=>`<option value="${n}" ${n===sel?'s
 
 /* ---------- render ---------- */
 const PWA=!!window.PM_PWA;
+window.addEventListener('hashchange',()=>{if(PWA&&/[#&]k=/.test(location.hash))location.reload();});
 (function(){if(!PWA)return;const h=location.hash;const m=h.match(/[#&]k=([^&]+)/),u=h.match(/[#&]u=([^&]+)/);if(m&&u){try{localStorage.setItem('pm-app-cfg',JSON.stringify({k:decodeURIComponent(m[1]),u:decodeURIComponent(u[1])}));}catch(e){}history.replaceState(null,'',location.pathname+'#time');}})();
 const isMob=()=>window.matchMedia('(max-width:760px)').matches;
 const CLIM=()=>isMob()?4:5;
