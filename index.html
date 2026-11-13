@@ -405,6 +405,15 @@ a.plc{font-size:12px;color:var(--blue);text-decoration:none;white-space:nowrap;m
 .lgrow{align-items:center}
 .scope-q{margin:0 auto 0 0;align-self:center}
 .mbar{display:none}
+.ttl-btn{font:inherit;background:none;border:0;cursor:pointer;color:inherit;font-weight:600;font-size:17px;padding:6px 10px;border-radius:10px}.ttl-btn:hover{background:var(--blue-50)}.ttl-btn .caret{font-size:11px;color:var(--mute)}
+.mp-years{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 14px}
+.mp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.mp-mo{padding:14px 0;border-radius:12px;background:#f5f6f8;border:0;font:inherit;font-size:15px;font-weight:500;cursor:pointer;color:var(--ink)}
+.mp-mo.now{box-shadow:inset 0 0 0 1.5px var(--blue-200)}.mp-mo.on{background:var(--blue);color:#fff}
+.fab{position:fixed;right:22px;bottom:26px;z-index:35;width:56px;height:56px;border-radius:50%;border:0;background:var(--blue);color:#fff;font-size:30px;line-height:1;font-weight:300;box-shadow:0 8px 22px rgba(30,79,216,.35);cursor:pointer;display:grid;place-items:center;padding-bottom:3px}
+.fab:active{transform:scale(.94)}
+@keyframes slL{from{transform:translateX(40px);opacity:.3}to{transform:none;opacity:1}}@keyframes slR{from{transform:translateX(-40px);opacity:.3}to{transform:none;opacity:1}}
+.cal.slide-l{animation:slL .22s ease-out}.cal.slide-r{animation:slR .22s ease-out}
 .mlist{display:grid;gap:6px;margin-top:10px}
 .mitem{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-radius:12px;background:#f5f6f8;font:inherit;font-size:15px;font-weight:500;text-align:left;cursor:pointer;border:0;color:var(--ink)}
 .mitem.on{background:var(--blue-50);color:var(--blue)}.mitem span{color:var(--mute)}
@@ -524,6 +533,8 @@ a.plc{font-size:12px;color:var(--blue);text-decoration:none;white-space:nowrap;m
   .mbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font:inherit;font-size:11px;color:var(--mute);padding:4px 0;background:none;border:0;cursor:pointer}
   .mbar button.on{color:var(--blue);font-weight:600}
   .toast{bottom:calc(86px + env(safe-area-inset-bottom))!important}
+  .fab{right:16px;bottom:calc(84px + env(safe-area-inset-bottom))}
+  .cal{touch-action:pan-y}
   .page-head .seg{display:none}.page-head p{display:none}.page-head h2{font-size:22px}.page-head{margin-bottom:10px}
   .foot-pace{display:none}
   .card{padding:12px}
@@ -575,7 +586,7 @@ const WD=['일','월','화','수','목','금','토'];
 const WDM=['월','화','수','목','금','토','일'];
 const TODAY=new Date();const TODAYK=dKey(TODAY);const TODAYM=TODAYK.slice(0,7);
 const MONTHS=['2026-12',...Array.from({length:12},(_,i)=>`2027-${pad(i+1)}`)];
-const CAL_MONTHS=['2026-11',...MONTHS];
+const CAL_MONTHS=Array.from({length:72},(_,i)=>`${2025+Math.floor(i/12)}-${pad(i%12+1)}`);
 const mLabel=k=>k==='2026-12'?'12월 준비':`${+k.slice(5)}월`;
 const mLabelLong=k=>k==='2026-12'?'2026년 12월 · 준비 달':k==='2026-11'?'2026년 11월':`2027년 ${+k.slice(5)}월`;
 const clampM=k=>k<MONTHS[0]?MONTHS[0]:(k>MONTHS[MONTHS.length-1]?MONTHS[MONTHS.length-1]:k);
@@ -1233,7 +1244,7 @@ function vTime(){
   ${UI.tt==='todo'?vTodo():UI.tt==='week'?vWeekTT():UI.tt==='cal'?vCal():vRem()}${footPace(11)}`;
 }
 const HSTART=6,HEND=24,PX=0.8;
-const TTWEEKS=(()=>{const a=[];let d=mondayOf(new Date(2026,10,1));const end=new Date(2027,11,31);while(d<=end){a.push(dKey(d));d=new Date(d.getFullYear(),d.getMonth(),d.getDate()+7);}return a;})();
+const TTWEEKS=(()=>{const a=[];let d=mondayOf(new Date(2025,0,1));const end=new Date(2030,11,31);while(d<=end){a.push(dKey(d));d=new Date(d.getFullYear(),d.getMonth(),d.getDate()+7);}return a;})();
 function layoutLanes(items){
   items.sort((x,y)=>x.s0-y.s0||y.e0-x.e0);let cluster=[],lanes=[],cEnd=-1;
   const flush=()=>{cluster.forEach(it=>it.n=lanes.length);cluster=[];lanes=[];};
@@ -1342,9 +1353,11 @@ function vCal(){
   const i=CAL_MONTHS.indexOf(mk);
   const up=Object.keys(S.time.events).filter(k=>k>=TODAYK).sort().flatMap(k=>calItems(k).filter((_,j)=>true).filter(x=>x.k[0]!=='0').map(x=>({k,x}))).slice(0,8);
   return `
-  <div class="toolbar"><div class="weeknav"><button class="iconbtn" data-act="cmonth" data-m="${CAL_MONTHS[i-1]||''}" ${i<=0?'disabled':''}>‹</button><div class="ttl">${mLabelLong(mk).replace(' · 준비 달','')}</div><button class="iconbtn" data-act="cmonth" data-m="${CAL_MONTHS[i+1]||''}" ${i>=CAL_MONTHS.length-1?'disabled':''}>›</button></div></div>
-  <div class="row lgrow" style="margin-bottom:10px">${Object.entries(ECATS).map(([k,[n,c]])=>`<span class="lg-c"><i style="background:${c}"></i>${n}</span>`).join('')}<span class="lg-c"><i style="background:#fff;box-shadow:inset 0 0 0 1px var(--blue-200)"></i>반복 알림</span><button class="btn sm ghost" data-act="cat-manage">카테고리 편집</button></div>
-  <div class="cal">${cells}</div>
+  <div class="toolbar"><div class="weeknav"><button class="iconbtn" data-act="cmonth" data-m="${CAL_MONTHS[i-1]||''}" ${i<=0?'disabled':''}>‹</button><button class="ttl ttl-btn" data-act="mpick" title="연도·월 고르기">${y}년 ${m}월 <span class="caret">▾</span></button><button class="iconbtn" data-act="cmonth" data-m="${CAL_MONTHS[i+1]||''}" ${i>=CAL_MONTHS.length-1?'disabled':''}>›</button></div></div>
+  <div class="row lgrow" style="margin-bottom:10px">${Object.entries(ECATS).map(([k,[n,c]])=>`<span class="lg-c"><i style="background:${c}"></i>${n}</span>`).join('')}<span class="lg-c"><i style="background:#fff;box-shadow:inset 0 0 0 1px var(--blue-200)"></i>반복 알림</span></div>
+  <div class="cal" id="calGrid">${cells}</div>
+  <div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn sm ghost" data-act="cat-manage">카테고리 편집</button></div>
+  <button class="fab" data-act="add-item" data-dk="${mk===TODAYM?TODAYK:mk+'-01'}" aria-label="일정 추가">+</button>
   <div class="grid g2" style="margin-top:16px">
       <div class="card"><h3>다가오는 일정</h3><p class="desc">날짜를 눌러 일정을 추가해요.</p>${up.length?`<div class="up">${up.map(({k,x})=>{const d=parseD(k);return `<div class="up-it"><span class="dt">${d.getMonth()+1}/${d.getDate()} (${WD[d.getDay()]})</span><span style="flex:1;min-width:0">${evHtml(x)}</span></div>`;}).join('')}</div>`:'<p class="desc">예정된 일정이 없어요.</p>'}</div>
       <div class="card"><h3>칸 아래 파란 줄</h3><p class="desc" style="margin:0">그날 체크한 습관 비율이에요. 캘린더에서도 내가 ‘하고 있다’는 흐름이 보이도록.</p></div>
@@ -1707,6 +1720,11 @@ function pwaMenu(){const c=PWACFG();
     <button class="mitem" data-act="sync-now">지금 동기화하기<span>↻</span></button><button class="mitem" data-act="setup-again">연결 다시 설정하기<span>›</span></button></div>
     <p class="desc" style="margin-top:14px">${c?(SHEET_OK?'구글 시트와 연결돼 있어요. PC 페이스메이커와 같은 일정을 써요.':'구글 시트에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.'):'아직 연결 설정이 안 됐어요.'}</p>
     <div class="actions"><button class="btn" data-act="m-cancel">닫기</button></div>`,{});}
+function monthPicker(){const cy=+UI.cmonth.slice(0,4);const years=[...new Set(CAL_MONTHS.map(k=>+k.slice(0,4)))];
+  openModal(`<h3>이동할 달 고르기</h3><div id="mpBody"></div><div class="actions"><button class="btn ghost left" data-act="mp-m" data-m="${TODAYM}">오늘로</button><button class="btn" data-act="m-cancel">닫기</button></div>`,
+   {y:cy,draw(){$('#mpBody').innerHTML=`<div class="mp-years">${years.map(y=>`<button class="opt ${y===this.y?'on':''}" data-act="mp-y" data-y="${y}">${y}년</button>`).join('')}</div>
+     <div class="mp-grid">${Array.from({length:12},(_,i)=>{const k=`${this.y}-${pad(i+1)}`;return `<button class="mp-mo ${k===UI.cmonth?'on':''} ${k===TODAYM?'now':''}" data-act="mp-m" data-m="${k}">${i+1}월</button>`;}).join('')}</div>`;}});
+  MODAL.draw();}
 function catModal(){
   const list=JSON.parse(JSON.stringify((S.time.cats&&S.time.cats.length)?S.time.cats:DEFCATS));
   const used=k=>S.time.blocks.filter(b=>catOf(b.c)===k).length+Object.values(S.time.events).flat().filter(e=>evCat(e)===k).length;
@@ -1763,6 +1781,11 @@ function ttMove(cx,cy){const e={clientX:cx,clientY:cy};const dy=cy-TTD.y;
   const cols=$$('.tt-col');const c=cols.find(c=>{const r=c.getBoundingClientRect();return e.clientX>=r.left&&e.clientX<r.right;});
   if(c){TTD.d1=+c.dataset.d;const r0=TTD.col.getBoundingClientRect(),r1=c.getBoundingClientRect();TTD.el.style.transform=`translateX(${r1.left-r0.left}px)`;}
 }
+/* 월간 캘린더: 좌우로 밀어 달 넘기기 */
+let SW=null;
+document.addEventListener('touchstart',e=>{const g=e.target.closest&&e.target.closest('#calGrid');if(!g||e.touches.length!==1){SW=null;return;}const t=e.touches[0];SW={x:t.clientX,y:t.clientY,t:Date.now()};},{passive:true});
+document.addEventListener('touchend',e=>{if(!SW)return;const t=e.changedTouches[0];const dx=t.clientX-SW.x,dy=t.clientY-SW.y;const dt=Date.now()-SW.t;SW=null;
+  if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.5&&dt<700){const i=CAL_MONTHS.indexOf(UI.cmonth);const n=CAL_MONTHS[i+(dx<0?1:-1)];if(!n)return;e.preventDefault();UI.cmonth=n;saveUI();SUPPRESS_CLICK=true;setTimeout(()=>{SUPPRESS_CLICK=false;},350);render();const c=$('#calGrid');if(c){c.classList.add(dx<0?'slide-l':'slide-r');}}},{passive:false});
 /* touch: long-press to drag (bottom edge = resize) */
 let LP=null;
 document.addEventListener('touchstart',e=>{
@@ -1886,6 +1909,9 @@ const ACT={
  'tt-col':(t,e)=>{const r=t.getBoundingClientRect();const y=e.clientY-r.top;const m=Math.min(23*60,HSTART*60+Math.floor(y/PX/30)*30);const cur=dKey(mondayOf(TODAY));const wk=TTWEEKS.includes(UI.ttw)?UI.ttw:(TTWEEKS.includes(cur)?cur:TTWEEKS[0]);itemModal({kind:'new',dk:weekDays(wk)[+t.dataset.d],tm:fmtMin(m),te:fmtMin(m+60)});},
  scope:t=>scopeApply(t.dataset.v),
  'cat-manage':()=>catModal(),
+ mpick:()=>monthPicker(),
+ 'mp-y':t=>{MODAL.y=+t.dataset.y;MODAL.draw();},
+ 'mp-m':t=>{UI.cmonth=t.dataset.m;saveUI();closeModal();render();},
  'setup-again':()=>{closeModal();setupModal();},
  'sync-now':async t=>{t.disabled=true;t.textContent='맞추는 중…';await sheetFlush(true);await sheetPull(true);closeModal();toast(SHEET_OK?'최신 상태로 맞췄어요.':'연결하지 못했어요. 인터넷을 확인해 주세요.');},
  mb:t=>{const v=t.dataset.v;if(v==='more'&&PWA){pwaMenu();return;}if(v==='more'){openModal(`<h3>메뉴</h3><div class="mlist">${TABS.filter(x=>x[0]!=='time').map(([k,l])=>`<button class="mitem ${UI.tab===k?'on':''}" data-tab="${k}">${l}<span>›</span></button>`).join('')}</div><div class="actions"><button class="btn" data-act="m-cancel">닫기</button></div>`,{});return;}closeModal();UI.tt=v;if(UI.tab!=='time'){setTab('time');}else{saveUI();render();window.scrollTo(0,0);}},
