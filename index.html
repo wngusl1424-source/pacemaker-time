@@ -833,7 +833,7 @@ async function sheetInit(){await sheetPull(true);
 async function pwaLoad(){
   try{const c=JSON.parse(localStorage.getItem(LS)||'null');if(c)applyLoaded(c);}catch(e){}
   render();resetUndo();
-  if(!PWACFG()){setSave('local');return;}
+  if(!PWACFG()){setSave('local');setupModal();return;}
   setSave('loading');await sheetPull(true);resetUndo();
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')sheetPull(false);});
 }
@@ -1693,11 +1693,19 @@ function scopeApply(v){
   }
   markDirty('time');closeModal();render(true);
 }
+function setupModal(){
+  openModal(`<h3>처음 한 번만 연결해 주세요</h3><p class="desc">Claude가 보내 준 <b>연결 링크</b>(https://…#k=… 로 시작)를 길게 눌러 복사한 뒤, 아래 칸에 붙여 넣어 주세요. 연결 정보는 이 기기에만 저장돼요.</p>
+   <textarea class="f" id="cfgIn" rows="3" placeholder="여기에 연결 링크 붙여넣기"></textarea><p class="err" id="cfgErr"></p>
+   <div class="actions"><button class="btn primary" data-act="m-ok">연결하기</button></div>`,
+  {ok(){const v=$('#cfgIn').value.trim();const m=v.match(/[#&?]k=([^&\s]+)/),u=v.match(/[#&?]u=([^&\s]+)/);
+    if(!m||!u){$('#cfgErr').textContent='링크를 알아보지 못했어요. 전체를 복사해서 붙여 넣어 주세요.';return false;}
+    try{localStorage.setItem('pm-app-cfg',JSON.stringify({k:decodeURIComponent(m[1]),u:decodeURIComponent(u[1])}));}catch(e){}
+    setTimeout(()=>location.reload(),50);return true;}});}
 function pwaMenu(){const c=PWACFG();
   openModal(`<h3>메뉴</h3><div class="mlist">
     <a class="mitem" href="${PM_URL}" target="_blank" rel="noopener">페이스메이커 전체 열기 (만다라트 · 회고 등)<span>›</span></a>
-    <button class="mitem" data-act="sync-now">지금 동기화하기<span>↻</span></button></div>
-    <p class="desc" style="margin-top:14px">${c?(SHEET_OK?'구글 시트와 연결돼 있어요. PC 페이스메이커와 같은 일정을 써요.':'구글 시트에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.'):'아직 연결 설정이 안 됐어요. Claude가 보내 준 <b>연결 링크</b>를 이 폰에서 한 번 열어 주세요.'}</p>
+    <button class="mitem" data-act="sync-now">지금 동기화하기<span>↻</span></button><button class="mitem" data-act="setup-again">연결 다시 설정하기<span>›</span></button></div>
+    <p class="desc" style="margin-top:14px">${c?(SHEET_OK?'구글 시트와 연결돼 있어요. PC 페이스메이커와 같은 일정을 써요.':'구글 시트에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.'):'아직 연결 설정이 안 됐어요.'}</p>
     <div class="actions"><button class="btn" data-act="m-cancel">닫기</button></div>`,{});}
 function catModal(){
   const list=JSON.parse(JSON.stringify((S.time.cats&&S.time.cats.length)?S.time.cats:DEFCATS));
@@ -1878,6 +1886,7 @@ const ACT={
  'tt-col':(t,e)=>{const r=t.getBoundingClientRect();const y=e.clientY-r.top;const m=Math.min(23*60,HSTART*60+Math.floor(y/PX/30)*30);const cur=dKey(mondayOf(TODAY));const wk=TTWEEKS.includes(UI.ttw)?UI.ttw:(TTWEEKS.includes(cur)?cur:TTWEEKS[0]);itemModal({kind:'new',dk:weekDays(wk)[+t.dataset.d],tm:fmtMin(m),te:fmtMin(m+60)});},
  scope:t=>scopeApply(t.dataset.v),
  'cat-manage':()=>catModal(),
+ 'setup-again':()=>{closeModal();setupModal();},
  'sync-now':async t=>{t.disabled=true;t.textContent='맞추는 중…';await sheetFlush(true);await sheetPull(true);closeModal();toast(SHEET_OK?'최신 상태로 맞췄어요.':'연결하지 못했어요. 인터넷을 확인해 주세요.');},
  mb:t=>{const v=t.dataset.v;if(v==='more'&&PWA){pwaMenu();return;}if(v==='more'){openModal(`<h3>메뉴</h3><div class="mlist">${TABS.filter(x=>x[0]!=='time').map(([k,l])=>`<button class="mitem ${UI.tab===k?'on':''}" data-tab="${k}">${l}<span>›</span></button>`).join('')}</div><div class="actions"><button class="btn" data-act="m-cancel">닫기</button></div>`,{});return;}closeModal();UI.tt=v;if(UI.tab!=='time'){setTab('time');}else{saveUI();render();window.scrollTo(0,0);}},
  'cm-color':t=>{MODAL.sync();MODAL.open=MODAL.open===t.dataset.k?null:t.dataset.k;MODAL.draw();},
