@@ -2063,6 +2063,13 @@ if(isMob()){UI.tab='time';UI.tt='cal';if(CAL_MONTHS.includes(TODAYM))UI.cmonth=T
 load();
 })();
 </script>
-<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>r.update()).catch(()=>{});navigator.serviceWorker.addEventListener("message",e=>{if(e.data&&e.data.type==="pm-updated"){const m=document.querySelector("#modal:not([hidden])");if(!m){location.reload();}else{const t=document.getElementById("toast");if(t){t.textContent="새 버전이 준비됐어요. 창을 닫으면 적용돼요.";t.classList.add("show");}}}});}</script>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{});
+(function(){const B="f0d826e16d";
+async function chk(){try{const v=await fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json());
+if(!v||v.b===B||sessionStorage.getItem("pm-upd")===v.b)return;sessionStorage.setItem("pm-upd",v.b);
+const r=await fetch("index.html",{cache:"reload"});if(!r.ok)return;
+for(const k of await caches.keys()){const c=await caches.open(k);await c.put("index.html",r.clone());}
+if(!document.querySelector("#modal:not([hidden])"))location.reload();}catch(e){}}
+chk();document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")chk();});})();}</script>
 </body>
 </html>

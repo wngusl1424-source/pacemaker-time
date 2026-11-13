@@ -12,6 +12,7 @@ async function tell(msg) { (await self.clients.matchAll({ type: 'window' })).for
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
+  if (req.cache === 'reload' || req.cache === 'no-store') return;
   const nav = req.mode === 'navigate';
   const key = nav ? 'index.html' : req;
   e.respondWith(caches.open(V).then(async c => {
