@@ -364,6 +364,20 @@ table.trk{border-collapse:separate;border-spacing:0;font-size:12px}
 .t3{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;background:var(--blue-50)}
 .t3n{width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;font-weight:700;display:grid;place-items:center;font-size:13px;flex:none}
 .t3 .ck{margin:0}
+.wk-list{display:grid;gap:6px;margin:6px 0 10px}
+.wk-it{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line2);border-radius:10px;background:#fff}
+.wk-it{min-width:0;max-width:100%}.wk-it .td-in{flex:1;min-width:0;width:0}.wk-it .td-ic{flex:none}
+.wk-n{width:22px;height:22px;border-radius:50%;background:#eef1f6;color:var(--sub);font-size:12px;font-weight:700;display:grid;place-items:center;flex:none}.wk-n.hi{background:#fff2dc;color:#c27a00}
+.tdg{cursor:grab;color:var(--mute);font-size:13px;letter-spacing:-3px;padding:4px 6px 4px 0;touch-action:none;user-select:none;-webkit-user-select:none;flex:none}
+.wd-strip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-top:12px}
+.wd-chip{display:flex;flex-direction:column;align-items:center;gap:1px;padding:8px 0;border-radius:12px;background:#f5f6f8;border:1.5px solid transparent;font:inherit;cursor:pointer;color:var(--ink)}
+.wd-chip b{font-size:12px;color:var(--sub);font-weight:600}.wd-chip span{font-size:16px;font-weight:700}.wd-chip small{font-size:11px;color:var(--mute)}
+.wd-chip.red b,.wd-chip.red span{color:#e5484d}.wd-chip.today{border-color:var(--blue-200)}.wd-chip.on{background:var(--blue);border-color:var(--blue)}.wd-chip.on b,.wd-chip.on span,.wd-chip.on small{color:#fff}
+.tg-over{outline:2px dashed var(--blue);outline-offset:2px;background-color:var(--blue-50)!important}
+.wd-chip.on.tg-over{background:var(--blue)!important}
+.tg-src{opacity:.45}
+.tg-ghost{position:fixed;z-index:95;pointer-events:none;background:var(--ink);color:#fff;font-size:13px;padding:6px 10px;border-radius:10px;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 8px 20px rgba(0,0,0,.2)}
+.kgrp{width:100%;margin:6px 0 0!important;font-weight:600}
 .t3g{cursor:grab;color:var(--mute);font-size:14px;letter-spacing:-3px;padding:4px 6px 4px 0;touch-action:none;user-select:none;-webkit-user-select:none}
 .t3.t3drag{position:relative;z-index:3;box-shadow:0 8px 20px rgba(20,30,60,.15);background:#fff}
 .t3.t3tgt{outline:2px dashed var(--blue-200)}
@@ -1317,7 +1331,7 @@ function vMonthRev(){
 /* ===== TIME ===== */
 function vTime(){
   return `<section class="page-head"><div><h2 class="serif">시간표</h2><p>매주 반복되는 고정 일정은 주간 타임테이블에, 그때그때 일정은 월간 캘린더에 적어요. 캘린더 일정은 주간 타임테이블에도 함께 보여요.</p></div>
-  <div class="seg"><button class="${UI.tt==='todo'?'on':''}" data-act="tt-mode" data-v="todo">오늘 할 일</button><button class="${UI.tt==='week'?'on':''}" data-act="tt-mode" data-v="week">주간 타임테이블</button><button class="${UI.tt==='cal'?'on':''}" data-act="tt-mode" data-v="cal">월간 캘린더</button><button class="${UI.tt==='rem'?'on':''}" data-act="tt-mode" data-v="rem">반복 알림</button></div></section>
+  <div class="seg"><button class="${UI.tt==='todo'?'on':''}" data-act="tt-mode" data-v="todo">할 일</button><button class="${UI.tt==='week'?'on':''}" data-act="tt-mode" data-v="week">주간 타임테이블</button><button class="${UI.tt==='cal'?'on':''}" data-act="tt-mode" data-v="cal">월간 캘린더</button><button class="${UI.tt==='rem'?'on':''}" data-act="tt-mode" data-v="rem">반복 알림</button></div></section>
   ${UI.tt==='todo'?vTodo():UI.tt==='week'?vWeekTT():UI.tt==='cal'?vCal():vRem()}${footPace(11)}`;
 }
 const HSTART=6,HEND=24,PX=0.8;
@@ -1891,11 +1905,15 @@ function taskModal(o){
    <p class="err" id="kErr"></p>
    <div class="actions">${t?`<button class="btn danger left" data-act="k-del">삭제</button>${t.tm?'<button class="btn ghost" data-act="k-unsched" title="할 일 목록에는 남겨 두고 시간표에서만 빼요">시간표에서 빼기</button>':''}`:''}<button class="btn" data-act="m-cancel">취소</button><button class="btn primary" data-act="m-ok">${isNew?'추가':'저장'}</button></div>`,
   {dk,id:o.id||null,pick:null,picks:[],
-   kList(){const box=$('#kList');if(!box)return;const nd=$('#kD').value||dk;const list=(TD(nd)||{tasks:[]}).tasks.filter(x=>!x.done&&!x.tm);
+   kList(){const box=$('#kList');if(!box)return;const nd=$('#kD').value||dk;const dl=(TD(nd)||{tasks:[]}).tasks.filter(x=>!x.done&&!x.tm);const wl=(WK(monOf(nd))||{tasks:[]}).tasks.filter(x=>!x.done);const list=[...dl,...wl];
+     const chip=x=>`<button class="chip ${this.picks.includes(x.id)?'on':''}" data-act="k-pick" data-id="${x.id}">${this.picks.includes(x.id)?(this.picks.indexOf(x.id)+1)+'. ':''}${esc(x.t)||'(제목 없음)'}</button>`;
+     if(list.length){box.innerHTML=`${dl.length?`<small class="desc kgrp">${md(nd)} 할 일</small>${dl.map(chip).join('')}`:''}${wl.length?`<small class="desc kgrp">이번 주 할 일 · 날짜 미정</small>${wl.map((x,i)=>chip(x)).join('')}`:''}${list.length>1?'<small class="desc" style="width:100%;margin:4px 0 0">여러 개 고르면 그날 가장 길게 비어 있는 시간에 1시간씩 차례로 넣어요.</small>':''}`;
+       this.picks=this.picks.filter(id=>list.some(x=>x.id===id));this.pick=this.picks.length===1?this.picks[0]:null;const kt=$('#kT');if(kt){kt.disabled=this.picks.length>1;if(this.picks.length>1)kt.value=`할 일 ${this.picks.length}개 선택됨`;}return;}
      box.innerHTML=list.length?list.map(x=>`<button class="chip ${this.picks.includes(x.id)?'on':''}" data-act="k-pick" data-id="${x.id}">${this.picks.includes(x.id)?(this.picks.indexOf(x.id)+1)+'. ':''}${esc(x.t)||'(제목 없음)'}</button>`).join('')+(list.length>1?'<small class="desc" style="width:100%;margin:4px 0 0">여러 개 고르면 그날 가장 길게 비어 있는 시간에 1시간씩 차례로 넣어요.</small>':''):`<span class="desc" style="margin:0">${parseD(nd).getMonth()+1}/${parseD(nd).getDate()} 할 일 목록에 시간이 안 정해진 일이 없어요.</span>`;
      this.picks=this.picks.filter(id=>list.some(x=>x.id===id));this.pick=this.picks.length===1?this.picks[0]:null;
      const kt=$('#kT');if(kt){kt.disabled=this.picks.length>1;if(this.picks.length>1)kt.value=`할 일 ${this.picks.length}개 선택됨`;}},
    ok(){const nd0=$('#kD').value||this.dk;
+     const pull=id=>{const mon=monOf(nd0);const w=WK(mon);if(w&&w.tasks.some(z=>z.id===id)){wkAssign(mon,id,nd0);}};this.picks.forEach(pull);
      if(!this.id&&this.picks.length>1){const d0=TD(nd0,true);let st=nt('kS');const slots=st?Array.from({length:this.picks.length},(_,i)=>toMin(st)+i*60):freeSlots(nd0,this.picks.length);
        this.picks.forEach((id,i)=>{const t=d0.tasks.find(z=>z.id===id);if(!t)return;const m=Math.min(23*60,slots[i]);t.tm=fmtMin(m);t.te=fmtMin(Math.min(24*60-1,m+60));});
        tdDirty(nd0);render(true);toast(`할 일 ${this.picks.length}개를 ${fmtMin(slots[0])}부터 넣었어요. 끌어서 옮길 수 있어요.`);return true;}
@@ -2078,6 +2096,21 @@ document.addEventListener('touchcancel',()=>{if(ADLP){clearTimeout(ADLP.timer);A
 document.addEventListener('dragover',e=>{if(!$('#aiT'))return;if([...(e.dataTransfer&&e.dataTransfer.types||[])].includes('Files')){e.preventDefault();const m=$('.modal');m&&m.classList.add('drop-on');}});
 document.addEventListener('dragleave',e=>{if(e.relatedTarget)return;const m=$('.modal');m&&m.classList.remove('drop-on');});
 document.addEventListener('drop',e=>{if(!$('#aiT'))return;e.preventDefault();const m=$('.modal');m&&m.classList.remove('drop-on');const fs=[...(e.dataTransfer&&e.dataTransfer.files||[])].filter(f=>f.type.startsWith('image/')).slice(0,4);if(!fs.length){toast('이미지 파일만 올릴 수 있어요.');return;}Promise.all(fs.map(shrinkImg)).then(bs=>{AIIMG=AIIMG.concat(bs).slice(0,4);aiThumbs();toast(`캡처 ${bs.length}장을 올렸어요.`);});});
+/* 할 일: 이번 주 ↔ 요일 끌어 나누기 */
+let TG=null;
+function tgTarget(x,y){if(TG.ghost)TG.ghost.style.display='none';const el=document.elementFromPoint(x,y);if(TG.ghost)TG.ghost.style.display='';if(!el||!el.closest)return null;return el.closest('.wd-chip')||el.closest('.wk-it')||el.closest('.wk-box');}
+document.addEventListener('pointerdown',e=>{const g=e.target.closest&&e.target.closest('.tdg');if(!g)return;e.preventDefault();const row=g.closest('.wk-it,.td');TG={src:g.dataset.src,id:g.dataset.id,dk:g.dataset.dk,row,x:e.clientX,y:e.clientY,moved:false};try{g.setPointerCapture(e.pointerId);}catch(_){}});
+document.addEventListener('pointermove',e=>{if(!TG)return;if(!TG.moved){if(Math.hypot(e.clientX-TG.x,e.clientY-TG.y)<5)return;TG.moved=true;const gh=document.createElement('div');gh.className='tg-ghost';gh.textContent=(TG.row.querySelector('.td-in')||{}).value||'할 일';document.body.appendChild(gh);TG.ghost=gh;TG.row.classList.add('tg-src');}
+  TG.ghost.style.left=(e.clientX+10)+'px';TG.ghost.style.top=(e.clientY+10)+'px';$$('.tg-over').forEach(x=>x.classList.remove('tg-over'));const t=tgTarget(e.clientX,e.clientY);if(t)t.classList.add('tg-over');});
+document.addEventListener('pointerup',e=>{if(!TG)return;const A=TG;TG=null;if(A.ghost)A.ghost.remove();$$('.tg-over').forEach(x=>x.classList.remove('tg-over'));if(A.row)A.row.classList.remove('tg-src');if(!A.moved)return;
+  SUPPRESS_CLICK=true;setTimeout(()=>{SUPPRESS_CLICK=false;},300);TG={ghost:null};const t=tgTarget(e.clientX,e.clientY);TG=null;if(!t){render(true);return;}
+  const mon=$('.wk-box')?$('.wk-box').dataset.mon:monOf(A.dk||TODAYK);
+  if(t.classList.contains('wd-chip')){const dk=t.dataset.dk;if(A.src==='wk'){wkAssign(mon,A.id,dk);toast(`${md(dk)} 할 일로 보냈어요.`);}else if(A.dk!==dk){const d0=TD(A.dk,true);const x=d0.tasks.find(z=>z.id===A.id);if(x){d0.tasks=d0.tasks.filter(z=>z!==x);if(x.pri){x.pri=0;let i=1;d0.tasks.filter(z=>z.pri).sort((a,b)=>a.pri-b.pri).forEach(z=>z.pri=i++);}delete x.tm;delete x.te;TD(dk,true).tasks.push(x);tdDirty(A.dk);tdDirty(dk);toast(`${md(dk)}로 옮겼어요.`);}}}
+  else{const before=t.classList.contains('wk-it')?t.dataset.id:null;
+    if(A.src==='day'){dayToWeek(A.dk,A.id,before);toast('이번 주 할 일로 돌려놨어요.');}
+    else if(before&&before!==A.id){const w=WK(mon,true);const x=w.tasks.find(z=>z.id===A.id);w.tasks=w.tasks.filter(z=>z!==x);const bi=w.tasks.findIndex(z=>z.id===before);const ri=t.getBoundingClientRect();const after=e.clientY>ri.top+ri.height/2;w.tasks.splice(after?bi+1:bi,0,x);wkDirty(mon);}}
+  render(true);});
+document.addEventListener('pointercancel',()=>{if(TG){if(TG.ghost)TG.ghost.remove();TG=null;render(true);}});
 /* Top 3 끌어서 순서 바꾸기 */
 let T3=null;
 document.addEventListener('pointerdown',e=>{const g=e.target.closest&&e.target.closest('.t3g');if(!g)return;e.preventDefault();const row=g.closest('.t3');const box=row.closest('.top3');
@@ -2158,6 +2191,11 @@ document.addEventListener('pointercancel',()=>{if(TTD){TTD=null;render(true);}})
 /* ===== TODO ===== */
 function TD(dk,create){const mk=dk.slice(0,7);if(!S.todo[mk]){if(!create)return null;S.todo[mk]={};}if(!S.todo[mk][dk]){if(!create)return null;S.todo[mk][dk]={memo:'',tasks:[]};}const d=S.todo[mk][dk];d.tasks=d.tasks||[];return d;}
 const tdDirty=dk=>markDirty('t:'+dk.slice(0,7));
+const monOf=dk=>dKey(mondayOf(parseD(dk)));
+function WK(mon,create){const mk=mon.slice(0,7);const k='wk:'+mon;if(!S.todo[mk]){if(!create)return null;S.todo[mk]={};}if(!S.todo[mk][k]){if(!create)return null;S.todo[mk][k]={tasks:[]};}const w=S.todo[mk][k];w.tasks=w.tasks||[];return w;}
+const wkDirty=mon=>markDirty('t:'+mon.slice(0,7));
+function wkAssign(mon,id,dk){const w=WK(mon,true);const t=w.tasks.find(z=>z.id===id);if(!t)return;w.tasks=w.tasks.filter(z=>z!==t);t.pri=0;TD(dk,true).tasks.push(t);wkDirty(mon);tdDirty(dk);}
+function dayToWeek(dk,id,beforeId){const d=TD(dk,true);const t=d.tasks.find(z=>z.id===id);if(!t)return;const p=t.pri;d.tasks=d.tasks.filter(z=>z!==t);if(p){let i=1;d.tasks.filter(z=>z.pri).sort((a,b)=>a.pri-b.pri).forEach(z=>z.pri=i++);}t.pri=0;delete t.tm;delete t.te;const mon=monOf(dk);const w=WK(mon,true);const bi=beforeId?w.tasks.findIndex(z=>z.id===beforeId):-1;if(bi>=0)w.tasks.splice(bi,0,t);else w.tasks.push(t);tdDirty(dk);wkDirty(mon);}
 function prevTodoDay(dk){for(let i=1;i<=14;i++){const k=addDays(dk,-i);const d=TD(k);if(d&&d.tasks.some(t=>!t.done&&!t.carried))return k;}return null;}
 function vTodo(){
   const dk=UI.tdd||TODAYK;const d=TD(dk)||{memo:'',tasks:[]};const dt=parseD(dk);
@@ -2165,7 +2203,7 @@ function vTodo(){
   const done=tasks.filter(t=>t.done).length;
   const pk=prevTodoDay(dk);const carry=pk?TD(pk).tasks.filter(t=>!t.done&&!t.carried).length:0;
   const row=t=>{const sd=(t.sub||[]).filter(x=>x.done).length,sn=(t.sub||[]).length;return `<div class="td ${t.done?'dn':''}" data-tid="${t.id}">
-    <div class="td-main"><button class="ck ${t.done?'on':''}" data-act="td-ck" data-id="${t.id}" aria-label="완료"></button>
+    <div class="td-main"><span class="tdg" data-src="day" data-dk="${dk}" data-id="${t.id}" title="끌어서 다른 요일·이번 주 할 일로">⋮⋮</span><button class="ck ${t.done?'on':''}" data-act="td-ck" data-id="${t.id}" aria-label="완료"></button>
       <input class="td-in" data-td="${dk}|${t.id}||t" value="${esc(t.t)}" placeholder="할 일">
       ${sn?`<span class="td-cnt">${sd}/${sn}</span>`:''}
       <button class="td-time ${t.tm?'on':''}" data-act="tk-edit" data-dk="${dk}" data-id="${t.id}" title="${t.tm?'주간 시간표의 할 일 블럭':'주간 시간표에 시간 블럭 정하기'}">${t.tm?`${t.tm}${t.te?'–'+t.te:''}`:'⏱'}</button>
@@ -2177,14 +2215,22 @@ function vTodo(){
   </div>`;};
   const todayEv=calItems(dk).map(x=>`<div class="up-it">${evHtml(x)}</div>`).join('');
   const blocks=blocksOn(dk).sort((a,b)=>toMin(a.s)-toMin(b.s));
+  const mon=monOf(dk);const wk=WK(mon)||{tasks:[]};const wdays=weekDays(mon);
+  const wkCard=`<div class="card wk-box" data-mon="${mon}" style="margin-bottom:16px"><div class="row"><h3>이번 주 할 일</h3><small class="desc" style="margin:0">${md(mon)} – ${md(wdays[6])}</small><span class="sp"></span>${wk.tasks.length?`<small class="desc" style="margin:0">${wk.tasks.length}개 남음</small>`:''}</div>
+    <p class="desc">이번 주에 할 일을 <b>중요한 순서대로</b> 적어요. ⋮⋮을 끌어 순서를 바꾸거나, 아래 요일 칸에 놓아 그날로 보내요. (📅를 눌러도 돼요)</p>
+    <div class="wk-list">${wk.tasks.map((t,i)=>`<div class="wk-it" data-id="${t.id}"><span class="tdg" data-src="wk" data-id="${t.id}" title="끌어서 순서 바꾸기·요일로 보내기">⋮⋮</span><span class="wk-n ${i<3?'hi':''}">${i+1}</span><input class="td-in" data-wk="${mon}|${t.id}" value="${esc(t.t)}" placeholder="할 일"><button class="td-ic" data-act="wk-pick" data-id="${t.id}" title="요일 정하기">📅</button><button class="td-ic" data-act="wk-del" data-id="${t.id}" title="삭제">×</button></div>`).join('')}</div>
+    <input class="f td-add" id="wkNew" data-mon="${mon}" placeholder="+ 이번 주 할 일 (Enter) — 예) 프로필 사진 보정, 오디션 영상 찍기">
+    <div class="wd-strip">${wdays.map((k,i)=>{const n=((TD(k)||{tasks:[]}).tasks).filter(t=>!t.done).length;const dd=parseD(k);return `<button class="wd-chip ${k===dk?'on':''} ${k===TODAYK?'today':''} ${i===6||isRed(k)?'red':''}" data-act="tdd" data-d="${k}" data-dk="${k}"><b>${WDM[i]}</b><span>${dd.getDate()}</span><small>${n?n+'개':'·'}</small></button>`;}).join('')}</div>
+  </div>`;
   return `
   <div class="toolbar"><div class="weeknav"><button class="iconbtn" data-act="tdd" data-d="${addDays(dk,-1)}">‹</button><div class="ttl">${dt.getMonth()+1}월 ${dt.getDate()}일 (${WD[dt.getDay()]})<small>${dk===TODAYK?'오늘':dk<TODAYK?'지난 날':'다가오는 날'}</small></div><button class="iconbtn" data-act="tdd" data-d="${addDays(dk,1)}">›</button></div>${dk!==TODAYK?`<button class="btn sm ghost" data-act="tdd" data-d="${TODAYK}">오늘로</button>`:''}<span class="sp"></span>${tasks.length?`<span class="desc" style="margin:0">완료 ${done}/${tasks.length}</span>`:''}</div>
+  ${wkCard}
   <div class="grid g21">
     <div class="grid" style="align-content:start">
-      <div class="card"><h3>오늘의 Top 3</h3><p class="desc">오늘 딱 이것만은. 할 일 옆 ☆을 눌러 순서대로 1~3을 정하고, ⋮⋮을 끌어 순서를 바꿔요.</p>
+      <div class="card"><h3>${dk===TODAYK?'오늘의':`${dt.getMonth()+1}/${dt.getDate()}`} Top 3</h3><p class="desc">오늘 딱 이것만은. 할 일 옆 ☆을 눌러 순서대로 1~3을 정하고, ⋮⋮을 끌어 순서를 바꿔요.</p>
         ${top.length?`<div class="top3" data-dk="${dk}">${top.map(t=>`<div class="t3 ${t.done?'dn':''}" data-tid="${t.id}">${top.length>1?'<span class="t3g" title="끌어서 순서 바꾸기">⋮⋮</span>':''}<span class="t3n">${t.pri}</span><button class="ck ${t.done?'on':''}" data-act="td-ck" data-id="${t.id}"></button><span class="t3t">${esc(t.t)||'(제목 없음)'}</span>${(t.sub||[]).length?`<span class="td-cnt">${t.sub.filter(x=>x.done).length}/${t.sub.length}</span>`:''}</div>`).join('')}</div>`:'<p class="desc" style="margin:0;color:var(--mute)">아직 정하지 않았어요.</p>'}
       </div>
-      <div class="card"><div class="row"><h3>할 일</h3><span class="sp"></span>${carry?`<button class="btn sm" data-act="td-carry" data-from="${pk}">${parseD(pk).getMonth()+1}/${parseD(pk).getDate()} 못 끝낸 일 ${carry}개 가져오기</button>`:''}</div>
+      <div class="card"><div class="row"><h3>${dk===TODAYK?'오늘 할 일':`${dt.getMonth()+1}/${dt.getDate()} (${WD[dt.getDay()]}) 할 일`}</h3><span class="sp"></span>${carry?`<button class="btn sm" data-act="td-carry" data-from="${pk}">${parseD(pk).getMonth()+1}/${parseD(pk).getDate()} 못 끝낸 일 ${carry}개 가져오기</button>`:''}</div>
         <div class="tdl">${tasks.map(row).join('')||'<p class="desc">아직 할 일이 없어요. 아래에 적고 Enter를 누르세요.</p>'}</div>
         <input class="f td-add" id="tdNew" placeholder="+ 할 일 추가 (Enter) — 예) 이번 주말 에이전시 투어 준비">
         <p class="desc" style="margin:10px 0 0">▸를 누르면 세부 항목을 달 수 있어요. 세부 항목이 있는 일은 진행도가 숫자로 보여요.</p>
@@ -2228,6 +2274,10 @@ const ACT={
  'tt-col':(t,e)=>{const r=t.getBoundingClientRect();const y=e.clientY-r.top;const m=Math.min(23*60,HSTART*60+Math.floor(y/PX/30)*30);const cur=dKey(mondayOf(TODAY));const wk=TTWEEKS.includes(UI.ttw)?UI.ttw:(TTWEEKS.includes(cur)?cur:TTWEEKS[0]);itemModal({kind:'new',dk:weekDays(wk)[+t.dataset.d],tm:fmtMin(m),te:fmtMin(m+60)});},
  scope:t=>scopeApply(t.dataset.v),
  'cat-manage':()=>catModal(),
+ 'wk-del':t=>{const mon=$('.wk-box').dataset.mon;const w=WK(mon,true);w.tasks=w.tasks.filter(z=>z.id!==t.dataset.id);wkDirty(mon);render(true);},
+ 'wk-pick':t=>{const mon=$('.wk-box').dataset.mon;const id=t.dataset.id;const ds=weekDays(mon);const x=(WK(mon)||{tasks:[]}).tasks.find(z=>z.id===id);
+   openModal(`<h3>언제 할까요?</h3><p class="desc">‘${esc(x?x.t:'')}’</p><div class="wd-strip" style="margin-top:6px">${ds.map((k,i)=>`<button class="wd-chip ${k===TODAYK?'today':''}" data-act="wk-to" data-id="${id}" data-dk="${k}"><b>${WDM[i]}</b><span>${parseD(k).getDate()}</span></button>`).join('')}</div><div class="actions"><button class="btn" data-act="m-cancel">닫기</button></div>`,{mon});},
+ 'wk-to':t=>{const mon=MODAL&&MODAL.mon||monOf(t.dataset.dk);wkAssign(mon,t.dataset.id,t.dataset.dk);closeModal();render(true);toast(`${md(t.dataset.dk)} 할 일로 보냈어요.`);},
  'ai-open':()=>{closeModal();aiModal();},
  'ai-key':()=>{closeModal();aiKeyModal();},
  'ai-run':()=>aiRun(),
@@ -2239,7 +2289,7 @@ const ACT={
  'tk-ck':t=>{const d=TD(t.dataset.dk,true);const x=d.tasks.find(z=>z.id===t.dataset.id);if(!x)return;x.done=!x.done;tdDirty(t.dataset.dk);render(true);if(x.done)toast('잘했어요! 할 일을 완료했어요.');},
  'to-task':()=>{const v={dk:$('#iD').value,tm:nt('iS'),te:nt('iE'),t:$('#iT').value.trim()};closeModal();taskModal(v);},
  'to-event':()=>{const v={dk:$('#kD').value,tm:nt('kS'),te:nt('kE')};const t0=$('#kT').value.trim();closeModal();itemModal({kind:'new',dk:v.dk,tm:v.tm,te:v.te});if(t0)$('#iT').value=t0;},
- 'k-pick':t=>{const id=t.dataset.id;const P=MODAL.picks;const i=P.indexOf(id);if(i>=0)P.splice(i,1);else P.push(id);const one=P.length===1?(TD($('#kD').value)||{tasks:[]}).tasks.find(z=>z.id===P[0]):null;MODAL.kList();if(P.length<=1){$('#kT').disabled=false;$('#kT').value=one?one.t:'';}},
+ 'k-pick':t=>{const id=t.dataset.id;const P=MODAL.picks;const i=P.indexOf(id);if(i>=0)P.splice(i,1);else P.push(id);const nd=$('#kD').value;const one=P.length===1?[...(TD(nd)||{tasks:[]}).tasks,...(WK(monOf(nd))||{tasks:[]}).tasks].find(z=>z.id===P[0]):null;MODAL.kList();if(P.length<=1){$('#kT').disabled=false;$('#kT').value=one?one.t:'';}},
  'k-unsched':()=>{const d=TD(MODAL.dk,true);const x=d.tasks.find(z=>z.id===MODAL.id);if(x){delete x.tm;delete x.te;tdDirty(MODAL.dk);}closeModal();render(true);toast('시간표에서 뺐어요. 할 일 목록에는 남아 있어요.');},
  'k-del':()=>{const d=TD(MODAL.dk,true);d.tasks=d.tasks.filter(z=>z.id!==MODAL.id);let i=1;d.tasks.filter(z=>z.pri).sort((a,b)=>a.pri-b.pri).forEach(z=>z.pri=i++);tdDirty(MODAL.dk);closeModal();render(true);toast('할 일을 지웠어요.');},
  mpick:()=>monthPicker(),
@@ -2338,6 +2388,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&e.target.id==='nhName'){e.preventDefault();const b=$('[data-act="add-habit"]');b&&b.click();}
   if(e.target.classList&&e.target.classList.contains('tp-in')&&(e.key==='Enter'||e.key==='Escape'||e.key==='Tab')){if(e.key!=='Tab')e.preventDefault();tpClose();if(e.key==='Enter')e.target.blur();return;}
   if(e.key==='Enter'&&e.target.id==='yhName'){e.preventDefault();ACT['yh-add']();}
+  if(e.key==='Enter'&&!e.isComposing&&e.target.id==='wkNew'){e.preventDefault();const v=e.target.value.trim();if(v){const mon=e.target.dataset.mon;WK(mon,true).tasks.push({id:uid(),t:v,done:false,pri:0,sub:[],open:false});wkDirty(mon);render(true);setTimeout(()=>{const x=$('#wkNew');x&&x.focus();},0);}}
   if(e.key==='Enter'&&!e.isComposing&&e.target.id==='tdNew'){e.preventDefault();const v=e.target.value.trim();if(v)tdAdd(v);}
   if(e.key==='Enter'&&!e.isComposing&&e.target.dataset&&e.target.dataset.addsub){e.preventDefault();const v=e.target.value.trim();if(v)tdAddSub(e.target.dataset.addsub,v);}
   if(e.key==='Enter'&&!e.isComposing&&e.target.classList&&e.target.classList.contains('td-in')){e.preventDefault();e.target.blur();}
@@ -2360,6 +2411,7 @@ document.addEventListener('input',e=>{
   if(el.id==='iP'){const a=$('#iPMap');if(a){const v=el.value.trim();a.href=v?mapUrl(v):'#';a.classList.toggle('off',!v);}return;}
   if((el.id==='iN'||el.id==='iC')&&MODAL&&MODAL.repUI){MODAL.repUI();return;}
   if(el.classList.contains('auto'))autosize(el);
+  if(el.dataset.wk){const [mon,id]=el.dataset.wk.split('|');const x=(WK(mon)||{tasks:[]}).tasks.find(z=>z.id===id);if(x){x.t=el.value;wkDirty(mon);}return;}
   if(el.dataset.td){const [dk,tid,sid,f]=el.dataset.td.split('|');const x=tdFind(dk,tid);if(x){if(sid){const s0=(x.sub||[]).find(z=>z.id===sid);if(s0)s0[f]=el.value;}else x[f]=el.value;tdDirty(dk);}return;}
   if(el.dataset.tdmemo){const d=TD(el.dataset.tdmemo,true);d.memo=el.value;tdDirty(el.dataset.tdmemo);return;}
   if(el.dataset.bind)bindSet(el);
@@ -2405,7 +2457,7 @@ load();
 })();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{});
-(function(){const B="7d89d6ae3f";
+(function(){const B="0c6d8750f9";
 async function chk(){try{const v=await fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json());
 if(!v||v.b===B||sessionStorage.getItem("pm-upd")===v.b)return;sessionStorage.setItem("pm-upd",v.b);
 const r=await fetch("index.html",{cache:"reload"});if(!r.ok)return;
