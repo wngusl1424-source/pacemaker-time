@@ -412,6 +412,16 @@ a.plc{font-size:12px;color:var(--blue);text-decoration:none;white-space:nowrap;m
 .lgrow{align-items:center}
 .scope-q{margin:0 auto 0 0;align-self:center}
 .mbar{display:none}
+.ai-btn{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#eef2ff,#f5efff);border-color:#d9defa;color:#3b4ba8;font-weight:600}
+.ai-btn:hover{background:linear-gradient(135deg,#e3e9ff,#ece3ff)}
+.spark{color:#6d5ae6;font-size:15px}.spin{display:inline-block;animation:spk 1.2s linear infinite}@keyframes spk{to{transform:rotate(360deg)}}
+.ai-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}.ai-tools .f{flex:1;min-width:160px}
+.ai-thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.ai-th{position:relative}.ai-th img{width:72px;height:72px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+.ai-th button{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--ink);color:#fff;border:0;font-size:12px;cursor:pointer}
+.ai-wait{margin-top:14px;color:var(--sub);font-size:14px}
+.ai-reply{margin-top:14px;padding:12px 14px;border-radius:12px;background:#f6f4ff;font-size:14px;line-height:1.6}
+.ai-list{display:grid;gap:6px;margin-top:10px}.ai-it{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line2);border-radius:10px;font-size:13.5px;line-height:1.5;cursor:pointer}
+.ai-it input{margin-top:3px}
 .tt-k{position:absolute;border-radius:8px;background:#fff;border:1.5px dashed #6b8af0;color:var(--ink);text-align:left;padding:4px 6px 4px 6px;font:inherit;font-size:12px;overflow:hidden;cursor:grab;box-shadow:0 1px 2px rgba(20,30,60,.05);touch-action:none}
 .tt-k b{display:flex;align-items:flex-start;gap:5px;font-weight:600;line-height:1.25}
 .tt-k small{display:block;color:var(--mute);font-size:11px;margin-top:1px;padding-left:19px}
@@ -555,6 +565,7 @@ a.plc{font-size:12px;color:var(--blue);text-decoration:none;white-space:nowrap;m
   .mbar button.on{color:var(--blue);font-weight:600}
   .toast{bottom:calc(140px + env(safe-area-inset-bottom))!important}
   .fab{right:16px;bottom:calc(84px + env(safe-area-inset-bottom))}
+  .ai-btn{padding:7px 11px;font-size:13px}.toolbar .ai-btn .ai-l{display:inline}
   .fab-today{bottom:calc(92px + env(safe-area-inset-bottom));height:38px;padding:0 18px;font-size:13px}
   .tt .tt-k{padding:2px 2px 2px 3px;font-size:10px;border-radius:4px;border-width:1.2px}.tt .tt-k b{font-size:10px;gap:2px;word-break:break-all}.tt .tt-k small{display:none}.tk-ck{width:10px;height:10px}
   .td-time{font-size:11px;padding:2px 4px}
@@ -1309,7 +1320,7 @@ function vWeekTT(){
   const actH=(tot.actor||0)/60,restH=(tot.rest||0)/60;
   const a=parseD(days[0]),z=parseD(days[6]);
   return `
-  <div class="toolbar"><div class="weeknav"><button class="iconbtn" data-act="ttw" data-w="${TTWEEKS[wi-1]||''}" ${wi<=0?'disabled':''}>‹</button><div class="ttl">${a.getMonth()+1}/${a.getDate()} – ${z.getMonth()+1}/${z.getDate()}<small>${a.getFullYear()}년</small></div><button class="iconbtn" data-act="ttw" data-w="${TTWEEKS[wi+1]||''}" ${wi>=TTWEEKS.length-1?'disabled':''}>›</button></div>${wk!==cur&&TTWEEKS.includes(cur)?`<button class="btn sm ghost" data-act="ttw" data-w="${cur}">이번 주</button>`:''}<span class="sp"></span><button class="btn" data-act="add-task" data-dk="${days.includes(TODAYK)?TODAYK:days[0]}">+ 할 일 블럭</button><button class="btn primary" data-act="add-item" data-dk="${days.includes(TODAYK)?TODAYK:days[0]}">+ 일정 추가</button></div>
+  <div class="toolbar"><div class="weeknav"><button class="iconbtn" data-act="ttw" data-w="${TTWEEKS[wi-1]||''}" ${wi<=0?'disabled':''}>‹</button><div class="ttl">${a.getMonth()+1}/${a.getDate()} – ${z.getMonth()+1}/${z.getDate()}<small>${a.getFullYear()}년</small></div><button class="iconbtn" data-act="ttw" data-w="${TTWEEKS[wi+1]||''}" ${wi>=TTWEEKS.length-1?'disabled':''}>›</button></div>${wk!==cur&&TTWEEKS.includes(cur)?`<button class="btn sm ghost" data-act="ttw" data-w="${cur}">이번 주</button>`:''}<span class="sp"></span><button class="btn ai-btn" data-act="ai-open" title="AI 비서: 캡처·글로 일정 추가"><span class="spark">✦</span><span class="ai-l">AI 비서</span></button><button class="btn" data-act="add-task" data-dk="${days.includes(TODAYK)?TODAYK:days[0]}">+ 할 일 블럭</button><button class="btn primary" data-act="add-item" data-dk="${days.includes(TODAYK)?TODAYK:days[0]}">+ 일정 추가</button></div>
   <button class="fab-today" data-act="ttw" data-w="${cur}">오늘</button>
   <div class="row lgrow" style="margin-bottom:10px">${Object.entries(ECATS).map(([k,[n,c]])=>`<span class="lg-c"><i style="background:${c}"></i>${n}${tot[k]?` <b style="color:var(--ink)">${(tot[k]/60).toFixed(tot[k]%60?1:0)}h</b>`:''}</span>`).join('')}<button class="btn sm ghost" data-act="cat-manage">카테고리 편집</button></div>
   <div class="card" style="padding:14px"><div class="tt-wrap"><div class="tt">
@@ -1390,7 +1401,7 @@ function vCal(){
   const i=CAL_MONTHS.indexOf(mk);
   const up=Object.keys(S.time.events).filter(k=>k>=TODAYK).sort().flatMap(k=>calItems(k).filter((_,j)=>true).filter(x=>x.k[0]!=='0').map(x=>({k,x}))).slice(0,8);
   return `
-  <div class="toolbar"><div class="weeknav"><button class="iconbtn" data-act="cmonth" data-m="${CAL_MONTHS[i-1]||''}" ${i<=0?'disabled':''}>‹</button><button class="ttl ttl-btn" data-act="mpick" title="연도·월 고르기">${y}년 ${m}월 <span class="caret">▾</span></button><button class="iconbtn" data-act="cmonth" data-m="${CAL_MONTHS[i+1]||''}" ${i>=CAL_MONTHS.length-1?'disabled':''}>›</button></div></div>
+  <div class="toolbar"><div class="weeknav"><button class="iconbtn" data-act="cmonth" data-m="${CAL_MONTHS[i-1]||''}" ${i<=0?'disabled':''}>‹</button><button class="ttl ttl-btn" data-act="mpick" title="연도·월 고르기">${y}년 ${m}월 <span class="caret">▾</span></button><button class="iconbtn" data-act="cmonth" data-m="${CAL_MONTHS[i+1]||''}" ${i>=CAL_MONTHS.length-1?'disabled':''}>›</button></div><span class="sp"></span><button class="btn ai-btn" data-act="ai-open" title="AI 비서: 캡처·글로 일정 추가"><span class="spark">✦</span><span class="ai-l">AI 비서</span></button></div>
   <div class="row lgrow" style="margin-bottom:10px">${Object.entries(ECATS).map(([k,[n,c]])=>`<span class="lg-c"><i style="background:${c}"></i>${n}</span>`).join('')}<span class="lg-c"><i style="background:#fff;box-shadow:inset 0 0 0 1px var(--blue-200)"></i>반복 알림</span></div>
   <div class="cal" id="calGrid">${cells}</div>
   <div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn sm ghost" data-act="cat-manage">카테고리 편집</button></div>
@@ -1807,6 +1818,101 @@ function taskModal(o){
      tdDirty(nd);render(true);toast(`할 일 블럭 · ${task.t} ${s1}–${e1}`);return true;}});
   if(isNew){MODAL.kList();setTimeout(()=>{const x=$('#kT');x&&!o.t&&x.focus();},40);}
 }
+/* ---------- AI 비서 ---------- */
+let AIIMG=[];
+function aiCtx(){
+  const lo=addDays(TODAYK,-45),hi=addDays(TODAYK,150);const ev=[];
+  Object.keys(S.time.events).sort().forEach(dk=>{if(dk<lo||dk>hi)return;S.time.events[dk].forEach(e=>ev.push(`${dk} | id=${e.id} | ${e.tm?e.tm+(e.te?'-'+e.te:''):'종일'} | ${e.t}${e.p?' @'+e.p:''} | ${evCat(e)}`));});
+  const bl=S.time.blocks.map(b=>`id=${b.id} | ${ruleText(b.r,b.until)} ${b.s}-${b.e} | ${b.t} | ${catOf(b.c)}`);
+  const td=[];for(let i=-1;i<8;i++){const dk=addDays(TODAYK,i);const d=TD(dk);if(d)d.tasks.forEach(t=>td.push(`${dk} | ${t.done?'완료':'미완료'} | ${t.tm?t.tm+'-'+(t.te||''):'시간없음'} | ${t.t}`));}
+  return {ev:ev.slice(-400),bl,td};}
+function aiPrompt(text,linkText){const c=aiCtx();const t=parseD(TODAYK);
+  return `너는 한국어를 쓰는 일정 비서야. 사용자의 요청(글, 캡처 이미지, 링크 내용)을 읽고 캘린더에 반영할 작업 목록을 JSON으로만 답해.
+오늘: ${TODAYK} (${WD[t.getDay()]}요일), 시간대: 한국(Asia/Seoul).
+카테고리(key: 이름): ${Object.entries(ECATS).map(([k,v])=>k+': '+v[0]).join(', ')}
+[기존 일정: 날짜 | id | 시간 | 제목 @장소 | 카테고리]
+${c.ev.join('\n')||'(없음)'}
+[반복 일정]
+${c.bl.join('\n')||'(없음)'}
+[할 일 목록]
+${c.td.join('\n')||'(없음)'}
+
+[사용자 요청]
+${text||'(글 없음 — 첨부 이미지를 보고 일정을 찾아줘)'}
+${linkText?`\n[링크에서 가져온 내용]\n${linkText.slice(0,12000)}`:''}
+
+규칙:
+- '다음 주 화요일', '모레' 같은 말은 오늘 날짜 기준으로 정확한 날짜(YYYY-MM-DD)로 바꿔.
+- 이미지에 일정이 여러 개 보이면 모두 뽑아. 이미 같은 날짜·같은 제목의 일정이 있으면 다시 추가하지 마.
+- 시간이 없으면 종일 일정(allday:true, start:"", end:"")으로. 끝 시간을 모르면 end는 "".
+- 여러 날에 걸친 종일 일정은 날짜마다 add_event를 하나씩 만들어.
+- 카테고리는 위 목록의 key 중 가장 알맞은 것으로. 모르면 "mine".
+- '할 일', '해야 할 것'은 add_task로. 일정 수정·삭제 요청은 기존 일정의 id를 써서 update_event/delete_event로.
+- 매주·매달처럼 반복이면 add_repeat로.
+- 지어내지 마. 확실하지 않으면 actions는 비우고 reply에 무엇이 필요한지 짧게 물어봐.
+답 형식(JSON만):
+{"reply":"한두 문장 한국어 요약","actions":[
+ {"op":"add_event","date":"YYYY-MM-DD","title":"","allday":false,"start":"HH:MM","end":"HH:MM","place":"","memo":"","cat":"key"},
+ {"op":"add_task","date":"YYYY-MM-DD","title":"","start":"","end":""},
+ {"op":"add_repeat","title":"","freq":"d|w|m|y","interval":1,"weekdays":[0],"from":"YYYY-MM-DD","until":"","start":"HH:MM","end":"HH:MM","place":"","cat":"key"},
+ {"op":"update_event","date":"YYYY-MM-DD","id":"","changes":{"title":"","date":"","start":"","end":"","allday":false,"place":"","memo":"","cat":""}},
+ {"op":"delete_event","date":"YYYY-MM-DD","id":""}]}
+weekdays는 월=0 … 일=6.`;}
+async function aiCall(prompt,images){
+  if(!PWA){const sample=window.claude?await window.claude.use('sample'):null;if(!sample)throw {code:'nosample'};
+    const lim=sample.limits?await sample.limits().catch(()=>({})):{};const opts={modelTier:'default'};if(images.length&&lim&&lim.images)opts.images=images;
+    const r=await sample.json(prompt,opts);return r&&r.value!==undefined&&!r.actions?r.value:r;}
+  const c=PWACFG();if(!c)throw {code:'nocfg'};
+  const imgs=await Promise.all(images.map(b=>new Promise(res=>{const fr=new FileReader();fr.onload=()=>res({media_type:b.type||'image/jpeg',data:String(fr.result).split(',')[1]});fr.readAsDataURL(b);})));
+  const r=await fetch(c.u,{method:'POST',body:JSON.stringify({k:c.k,ai:{prompt,images:imgs}})}).then(r=>r.json());
+  if(!r.ok)throw {code:r.err||'fail',message:r.msg||''};if(!r.data)throw {code:'noai'};return r.data;}
+async function aiFetchLink(url){if(!PWA)return '';const c=PWACFG();const r=await fetch(c.u,{method:'POST',body:JSON.stringify({k:c.k,fetch:url})}).then(r=>r.json());if(!r.ok)throw {code:r.err||'fetch',message:r.msg||''};return r.text||'';}
+async function shrinkImg(file){try{const bmp=await createImageBitmap(file);const m=1600;const sc=Math.min(1,m/Math.max(bmp.width,bmp.height));const cv=document.createElement('canvas');cv.width=Math.round(bmp.width*sc);cv.height=Math.round(bmp.height*sc);cv.getContext('2d').drawImage(bmp,0,0,cv.width,cv.height);return await new Promise(r=>cv.toBlob(r,'image/jpeg',0.85));}catch(e){return file;}}
+function aiModal(){AIIMG=[];
+  openModal(`<h3><span class="spark">✦</span> AI 비서</h3><p class="desc">하고 싶은 걸 짧게 말하거나, 일정이 담긴 캡처를 올려 주세요. 반영하기 전에 한 번 보여 드릴게요.</p>
+   <textarea class="f" id="aiT" rows="3" placeholder="예) 다음 주 화요일 3시 신촌 연기 스터디 등록해줘&#10;예) 이번 달 알바 끝나는 시간 전부 22시 반으로 바꿔줘&#10;예) 토요일 오전에 대본 외우기 할 일 넣어줘"></textarea>
+   <div class="ai-tools"><label class="btn sm"><input type="file" id="aiF" accept="image/*" multiple hidden>🖼 캡처 올리기</label>${PWA?'<input class="f" id="aiU" placeholder="링크 붙여넣기 (선택)" inputmode="url">':'<span class="desc" style="margin:0">링크는 여기서 열 수 없어요. 내용을 복사해 붙여 넣어 주세요. (Ctrl+V로 캡처 붙여넣기도 돼요)</span>'}</div>
+   <div id="aiThumbs" class="ai-thumbs"></div>
+   <div id="aiOut"></div><p class="err" id="aiErr"></p>
+   <div class="actions" id="aiAct"><button class="btn" data-act="m-cancel">닫기</button><button class="btn primary" data-act="ai-run">보내기</button></div>`,{acts:null});
+  setTimeout(()=>{const x=$('#aiT');x&&x.focus();},40);}
+function aiThumbs(){$('#aiThumbs').innerHTML=AIIMG.map((b,i)=>`<span class="ai-th"><img src="${URL.createObjectURL(b)}"><button data-act="ai-rm" data-i="${i}">×</button></span>`).join('');}
+const AIDESC=a=>{const d=a.date?`${+a.date.slice(5,7)}/${+a.date.slice(8)}(${WD[parseD(a.date).getDay()]}) `:'';
+  if(a.op==='add_event')return `<b>일정 추가</b> ${d}${a.allday||!a.start?'종일':a.start+(a.end?'–'+a.end:'')} · ${esc(a.title)}${a.place?' · 📍'+esc(a.place):''} <span class="st-tag">${esc((ECATS[a.cat]||ECATS.mine)[0])}</span>`;
+  if(a.op==='add_task')return `<b>할 일 추가</b> ${d}${a.start?a.start+(a.end?'–'+a.end:'')+' · ':''}${esc(a.title)}`;
+  if(a.op==='add_repeat')return `<b>반복 일정 추가</b> ${esc(a.title)} · ${a.freq==='w'?'매주 '+(a.weekdays||[]).map(i=>WDM[i]).join('·'):a.freq==='m'?'매달':a.freq==='y'?'매년':'매일'} ${a.start||''}${a.end?'–'+a.end:''}${a.from?' · '+a.from+'부터':''}`;
+  const e=a.date&&findEv(a.date,a.id);
+  if(a.op==='update_event')return `<b>일정 수정</b> ${d}${esc(e?e.t:'(찾을 수 없음)')} → ${esc(Object.entries(a.changes||{}).filter(([k,v])=>v!==''&&v!=null).map(([k,v])=>({title:'제목',date:'날짜',start:'시작',end:'끝',allday:'종일',place:'장소',memo:'메모',cat:'카테고리'}[k]||k)+' '+v).join(', '))}`;
+  if(a.op==='delete_event')return `<b>일정 삭제</b> ${d}${esc(e?e.t:'(찾을 수 없음)')}`;
+  return esc(JSON.stringify(a));};
+async function aiRun(){
+  const text=$('#aiT').value.trim();const url=PWA&&$('#aiU')?$('#aiU').value.trim():'';
+  if(!text&&!AIIMG.length&&!url){$('#aiErr').textContent='말하거나 캡처를 올려 주세요.';return;}
+  $('#aiErr').textContent='';$('#aiOut').innerHTML='<div class="ai-wait"><span class="spark spin">✦</span> 살펴보는 중이에요…</div>';$('#aiAct').querySelector('[data-act="ai-run"]').disabled=true;
+  try{let lt='';if(url){lt=await aiFetchLink(url);}
+    const res=await aiCall(aiPrompt(text,lt),AIIMG);const acts=(res&&Array.isArray(res.actions)?res.actions:[]).filter(a=>a&&a.op);
+    MODAL.acts=acts;
+    $('#aiOut').innerHTML=`<div class="ai-reply">${esc(res&&res.reply||'')}</div>${acts.length?`<div class="ai-list">${acts.map((a,i)=>`<label class="ai-it"><input type="checkbox" data-ai="${i}" checked><span>${AIDESC(a)}</span></label>`).join('')}</div>`:''}`;
+    $('#aiAct').innerHTML=`<button class="btn" data-act="m-cancel">닫기</button><button class="btn" data-act="ai-again">다시 말하기</button>${acts.length?'<button class="btn primary" data-act="ai-apply">반영하기</button>':''}`;
+  }catch(e){console.warn(e);$('#aiOut').innerHTML='';const b=$('#aiAct [data-act="ai-run"]');if(b)b.disabled=false;
+    $('#aiErr').textContent=e&&e.code==='nosample'?'AI를 부를 수 없는 화면이에요. 클로드 안에서 연 페이스메이커에서 써 주세요.':e&&e.code==='noai'?'폰 앱의 AI 연결은 아직 준비 중이에요. 지금은 PC 페이스메이커에서 써 주세요.':e&&e.code==='not_granted'?'AI 사용을 허용해야 쓸 수 있어요.':e&&e.code==='rate_limited'?'잠깐 너무 많이 썼어요. 조금 뒤에 다시 해 주세요.':e&&e.code==='fetch'?'링크를 열지 못했어요. 내용을 복사해 붙여 넣어 주세요.':'처리하지 못했어요. 다시 시도해 주세요.'+(e&&e.message?' ('+e.message+')':'');}
+}
+function aiApply(){
+  const acts=MODAL.acts||[];let n=0,nt0=0;const T=S.time;const okT=v=>/^\d{1,2}:\d{2}$/.test(v||'')?v.padStart(5,'0'):'';const okD=v=>/^\d{4}-\d{2}-\d{2}$/.test(v||'');const okC=k=>ECATS[k]?k:'mine';
+  $$('[data-ai]').forEach(cb=>{if(!cb.checked)return;const a=acts[+cb.dataset.ai];if(!a)return;
+    if(a.op==='add_event'&&okD(a.date)&&a.title){const tm=a.allday?'':okT(a.start),te=a.allday?'':okT(a.end);(T.events[a.date]=T.events[a.date]||[]).push({id:uid(),t:String(a.title).slice(0,80),cat:okC(a.cat),allday:!tm,tm,te:tm&&te&&te>tm?te:'',memo:String(a.memo||'').slice(0,300),p:String(a.place||'').slice(0,80)});n++;}
+    else if(a.op==='add_task'&&okD(a.date)&&a.title){const t={id:uid(),t:String(a.title).slice(0,80),done:false,pri:0,sub:[],open:false};const tm=okT(a.start);if(tm){t.tm=tm;const te=okT(a.end);t.te=te&&te>tm?te:fmtMin(Math.min(1439,toMin(tm)+60));}TD(a.date,true).tasks.push(t);tdDirty(a.date);nt0++;}
+    else if(a.op==='add_repeat'&&a.title&&okT(a.start)){const f=['d','w','m','y'].includes(a.freq)?a.freq:'w';const from=okD(a.from)?a.from:TODAYK;const d=parseD(from);const r={f,n:Math.max(1,+a.interval||1),end:okD(a.until)?'until':'none'};
+      if(f==='w')r.days=(Array.isArray(a.weekdays)&&a.weekdays.length?a.weekdays:[dowMon(d)]).map(Number).filter(x=>x>=0&&x<7);if(f==='m'||f==='y'){r.mode='date';r.md=d.getDate();r.nth=Math.ceil(d.getDate()/7);r.wd=dowMon(d);}if(f==='y')r.mon=d.getMonth();
+      const s1=okT(a.start);let e1=okT(a.end);if(!e1||e1<=s1)e1=fmtMin(Math.min(1439,toMin(s1)+60));
+      T.blocks.push({id:uid(),r,s:s1,e:e1,t:String(a.title).slice(0,80),p:String(a.place||''),c:okC(a.cat),cal:f!=='w',memo:'',from,until:okD(a.until)?a.until:'',ex:[]});n++;}
+    else if(a.op==='update_event'&&okD(a.date)){const e=findEv(a.date,a.id);if(!e)return;const c=a.changes||{};
+      if(c.title)e.t=String(c.title).slice(0,80);if(c.place!=null&&c.place!=='')e.p=String(c.place);if(c.memo)e.memo=String(c.memo);if(c.cat&&ECATS[c.cat])e.cat=c.cat;
+      if(c.allday===true){e.allday=true;e.tm='';e.te='';}if(okT(c.start)){e.tm=okT(c.start);e.allday=false;}if(okT(c.end))e.te=okT(c.end);
+      if(okD(c.date)&&c.date!==a.date)moveEv(a.date,e.id,c.date);n++;}
+    else if(a.op==='delete_event'&&okD(a.date)){const arr=T.events[a.date]||[];const b=arr.length;T.events[a.date]=arr.filter(x=>x.id!==a.id);if(!T.events[a.date].length)delete T.events[a.date];if(b!==(T.events[a.date]||[]).length)n++;}
+  });
+  if(n)markDirty('time');closeModal();render(true);toast(n||nt0?`AI 비서가 ${n?`일정 ${n}건`:''}${n&&nt0?', ':''}${nt0?`할 일 ${nt0}건`:''}을 반영했어요.`:'반영할 항목이 없었어요.');}
 function findEv(dk,id){return (S.time.events[dk]||[]).find(e=>e.id===id);}
 function moveEv(dk,id,ndk){if(dk===ndk)return findEv(dk,id);const arr=S.time.events[dk]||[];const i=arr.findIndex(e=>e.id===id);if(i<0)return null;const [e]=arr.splice(i,1);if(!arr.length)delete S.time.events[dk];(S.time.events[ndk]=S.time.events[ndk]||[]).push(e);return e;}
 function eventModal(dk,id){
@@ -1987,6 +2093,11 @@ const ACT={
  'tt-col':(t,e)=>{const r=t.getBoundingClientRect();const y=e.clientY-r.top;const m=Math.min(23*60,HSTART*60+Math.floor(y/PX/30)*30);const cur=dKey(mondayOf(TODAY));const wk=TTWEEKS.includes(UI.ttw)?UI.ttw:(TTWEEKS.includes(cur)?cur:TTWEEKS[0]);itemModal({kind:'new',dk:weekDays(wk)[+t.dataset.d],tm:fmtMin(m),te:fmtMin(m+60)});},
  scope:t=>scopeApply(t.dataset.v),
  'cat-manage':()=>catModal(),
+ 'ai-open':()=>{closeModal();aiModal();},
+ 'ai-run':()=>aiRun(),
+ 'ai-apply':()=>aiApply(),
+ 'ai-again':()=>{MODAL.acts=null;$('#aiOut').innerHTML='';$('#aiAct').innerHTML='<button class="btn" data-act="m-cancel">닫기</button><button class="btn primary" data-act="ai-run">보내기</button>';$('#aiT').focus();},
+ 'ai-rm':t=>{AIIMG.splice(+t.dataset.i,1);aiThumbs();},
  'add-task':t=>{closeModal();taskModal({dk:t.dataset.dk||TODAYK});},
  'tk-edit':t=>{closeModal();taskModal({dk:t.dataset.dk,id:t.dataset.id});},
  'tk-ck':t=>{const d=TD(t.dataset.dk,true);const x=d.tasks.find(z=>z.id===t.dataset.id);if(!x)return;x.done=!x.done;tdDirty(t.dataset.dk);render(true);if(x.done)toast('잘했어요! 할 일을 완료했어요.');},
@@ -2082,6 +2193,7 @@ document.addEventListener('click',e=>{
   if(t.dataset.tab&&!t.dataset.act){e.preventDefault();closeModal();setTab(t.dataset.tab);return;}
   const f=ACT[t.dataset.act];if(f){f(t,e);}
 });
+document.addEventListener('paste',e=>{if(!$('#aiT'))return;const items=[...(e.clipboardData&&e.clipboardData.items||[])].filter(i=>i.type.startsWith('image/'));if(!items.length)return;e.preventDefault();Promise.all(items.map(i=>shrinkImg(i.getAsFile()))).then(bs=>{AIIMG=AIIMG.concat(bs).slice(0,4);aiThumbs();toast('캡처를 붙였어요.');});});
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&e.target.id==='nhName'){e.preventDefault();const b=$('[data-act="add-habit"]');b&&b.click();}
   if(e.target.classList&&e.target.classList.contains('tp-in')&&(e.key==='Enter'||e.key==='Escape'||e.key==='Tab')){if(e.key!=='Tab')e.preventDefault();tpClose();if(e.key==='Enter')e.target.blur();return;}
@@ -2124,6 +2236,7 @@ document.addEventListener('change',e=>{
   const el=e.target;
   if(MODAL&&MODAL.repUI&&(el.id==='iD'||el.id==='iU'))MODAL.repUI();
   if(el.id==='kD'&&MODAL&&MODAL.kList)MODAL.kList();
+  if(el.id==='aiF'){const fs=[...el.files].slice(0,4);Promise.all(fs.map(shrinkImg)).then(bs=>{AIIMG=AIIMG.concat(bs).slice(0,4);aiThumbs();});el.value='';return;}
   if(el.classList&&el.classList.contains('cm-cus')&&MODAL&&MODAL.list){MODAL.sync();const c=MODAL.list.find(z=>z.k===el.dataset.k);if(c){c.c=el.value;delete c.f;delete c.x;}MODAL.draw();return;}
   if(el.dataset&&el.dataset.allday){const box=el.closest('.modal');const row=box&&box.querySelector('.tp-row');if(row)row.hidden=el.checked;const ad=$('#xADrow');if(ad)ad.hidden=el.checked;
     if(!el.checked){const [a,b]=el.dataset.allday.split(',');const s0=$('#'+a);if(s0&&!parseTime(s0.value))tpSet(s0,'09:00');}tpClose();return;}
@@ -2151,7 +2264,7 @@ load();
 })();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{});
-(function(){const B="862435acf4";
+(function(){const B="3a66044f9c";
 async function chk(){try{const v=await fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json());
 if(!v||v.b===B||sessionStorage.getItem("pm-upd")===v.b)return;sessionStorage.setItem("pm-upd",v.b);
 const r=await fetch("index.html",{cache:"reload"});if(!r.ok)return;
