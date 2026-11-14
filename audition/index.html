@@ -1254,14 +1254,11 @@ ${ps.map(p => [p.id, postLabel(p) + (p.company ? ' (' + p.company + ')' : ''), p
       const byId = Object.fromEntries(ps.map(p => [p.id, p]));
       let h = '<div class="reply">' + esc(res.reply || '') + '</div>';
       (res.days || []).forEach(d => {
-        let prev = start;
         h += '<div class="plan-day"><h4>' + esc(d.title || '') + '</h4>' + (d.stops || []).map((s, i) => {
           const p = byId[s.id]; if (!p) return '';
-          const from = prev; prev = mapQuery(p.address);
-          const dir = 'https://map.kakao.com/?sName=' + encodeURIComponent(from) + '&eName=' + encodeURIComponent(mapQuery(p.address));
           return '<div class="stop"><span class="no">' + (i + 1) + '</span><div><b>' + esc(postLabel(p)) + '</b>' + (s.arrive ? ' <span class="date dim">' + esc(s.arrive) + ' 도착</span>' : '')
             + '<div class="addr">' + esc(p.address) + '</div>' + (s.move ? '<div class="move">↳ ' + esc(s.move) + '</div>' : '') + (s.tip ? '<div class="note">' + esc(s.tip) + '</div>' : '')
-            + '<div class="acts" style="margin-top:6px">' + kakaoBtn(p.address, true) + '<a class="open" href="' + esc(dir) + '" target="_blank" rel="noopener">길찾기 ↗</a></div></div></div>';
+            + '<div class="acts" style="margin-top:6px">' + kakaoBtn(p.address, true) + '</div></div></div>';
         }).join('') + '</div>';
       });
       if ((res.skipped || []).length) h += '<div class="note">이번엔 빠진 곳: ' + res.skipped.map(s => esc((byId[s.id] ? postLabel(byId[s.id]) : s.id) + ' — ' + (s.why || ''))).join(' / ') + '</div>';
