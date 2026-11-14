@@ -412,6 +412,7 @@ a.plc{font-size:12px;color:var(--blue);text-decoration:none;white-space:nowrap;m
 .lgrow{align-items:center}
 .scope-q{margin:0 auto 0 0;align-self:center}
 .mbar{display:none}
+@media(pointer:coarse){.pc-only{display:none!important}}
 .cal-w{grid-column:1/-1;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));min-height:118px;row-gap:2px;padding-bottom:4px}
 .cal-w .cal-d{min-height:0;padding:0;border-left:1px solid var(--line2)}.cal-w .cal-d.c0{border-left:0}
 .cal-n{position:relative;z-index:1;pointer-events:none;padding:6px 6px 2px;min-width:0}
@@ -466,7 +467,11 @@ a.plc{font-size:12px;color:var(--blue);text-decoration:none;white-space:nowrap;m
 .rp{font-weight:700;margin-right:3px;opacity:.6}
 .rz{position:absolute;left:0;right:0;bottom:0;height:8px;cursor:ns-resize}
 .rz::after{content:'';position:absolute;left:50%;bottom:2px;width:18px;height:3px;margin-left:-9px;border-radius:2px;background:currentColor;opacity:0}
-.tt-b:hover .rz::after,.tt-e:hover .rz::after{opacity:.35}
+.tt-b:hover .rz::after,.tt-e:hover .rz::after,.tt-k:hover .rz::after{opacity:.35}
+.add-drag{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}.add-ghost{position:fixed;z-index:90;pointer-events:none;max-width:220px;opacity:.95;box-shadow:0 8px 20px rgba(20,30,60,.2);border-radius:6px}
+.add-hint{position:fixed;z-index:91;pointer-events:none;background:var(--ink);color:#fff;font-size:12px;padding:4px 8px;border-radius:8px}
+.tt-col.add-over{background:var(--blue-50)}
+.modal.drop-on{box-shadow:0 0 0 3px var(--blue),0 20px 50px rgba(20,30,60,.25)}
 .tt-e{position:absolute;border-radius:4px;padding:3px 6px;font-size:11.5px;line-height:1.35;overflow:hidden;cursor:pointer;text-align:left;box-shadow:0 0 0 1px #fff}
 .tt-e b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tt-e small{opacity:.85;font-size:10.5px}
@@ -566,7 +571,7 @@ a.plc{font-size:12px;color:var(--blue);text-decoration:none;white-space:nowrap;m
 .nudge .t{flex:1;min-width:200px}
 .theme-line{margin-top:14px;padding-top:12px;border-top:1px solid var(--line2)}
 .theme-line p{margin:2px 0 0;font-size:14px;white-space:pre-wrap}
-@media(pointer:coarse){.tt .tt-k{touch-action:auto;-webkit-touch-callout:none;user-select:none}.tt .tt-b,.tt .tt-e{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:auto;cursor:pointer}.rz{display:none}}
+@media(pointer:coarse){.tt .rz{display:block!important;height:16px}.tt .rz::after{opacity:.3}.tt .add-drag{touch-action:auto;-webkit-touch-callout:none;user-select:none}.tt .tt-k{touch-action:auto;-webkit-touch-callout:none;user-select:none}.tt .tt-b,.tt .tt-e{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:auto;cursor:pointer}.rz{display:none}}
 @media(max-width:760px){
   input,select,textarea{font-size:16px!important}
   html,body{overflow-x:hidden}.grid>*{min-width:0}.up-it{min-width:0}.up-it .evb,.up-it .evt{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1333,7 +1338,7 @@ function vWeekTT(){
     evs.filter(e=>e.tm).forEach(e=>{const cat=evCat(e);const s0=toMin(e.tm);let e0=e.te?toMin(e.te):s0+60;if(e0<=s0)e0=s0+60;items.push({kind:'e',id:e.id,memo:e.memo||'',p:e.p||'',t:e.t,cat,s:e.tm,e:e.te||'',s0,e0,dk});tot[cat]=(tot[cat]||0)+e0-s0;});
     (TD(dk)||{tasks:[]}).tasks.filter(t=>t.tm).forEach(t=>{const s0=toMin(t.tm);let e0=t.te?toMin(t.te):s0+60;if(e0<=s0)e0=s0+60;items.push({kind:'k',id:t.id,t:t.t,done:!!t.done,s:t.tm,e:t.te||fmtMin(e0),s0,e0,dk,cat:'mine'});});
     layoutLanes(items);
-    cols+=`<div class="tt-col ${isT?'today':''}" data-act="tt-col" data-d="${d}" style="height:${(HEND-HSTART)*48}px">${items.map(it=>{const c=ECATS[it.cat]||ECATS.mine;const s0=Math.max(it.s0,HSTART*60),e0=Math.min(it.e0,HEND*60);const top=(s0-HSTART*60)*PX,h=Math.max(18,(e0-s0)*PX-2);const w=100/it.n,l=it.lane*w;
+    cols+=`<div class="tt-col ${isT?'today':''}" data-act="tt-col" data-d="${d}" data-dk="${dk}" style="height:${(HEND-HSTART)*48}px">${items.map(it=>{const c=ECATS[it.cat]||ECATS.mine;const s0=Math.max(it.s0,HSTART*60),e0=Math.min(it.e0,HEND*60);const top=(s0-HSTART*60)*PX,h=Math.max(18,(e0-s0)*PX-2);const w=100/it.n,l=it.lane*w;
       if(it.kind==='k')return `<button class="tt-k ${it.done?'dn':''}" data-act="tk-edit" data-kind="k" data-dk="${it.dk}" data-id="${it.id}" title="할 일 · ${esc(it.t)}" style="top:${top}px;height:${h}px;left:calc(${l}% + 2px);width:calc(${w}% - 4px)"><b><span class="tk-ck ${it.done?'on':''}" data-act="tk-ck" data-dk="${it.dk}" data-id="${it.id}" role="checkbox" aria-checked="${it.done}"></span>${esc(it.t)||'(할 일)'}</b>${h>30?`<small>${it.s}–${it.e}</small>`:''}<span class="rz"></span></button>`;
       if(it.kind==='b')return `<button class="tt-b" data-act="edit-block" data-kind="b" data-dk="${dk}" data-id="${it.id}" title="${esc(it.t+' · '+it.rt+(it.p?'\n📍 '+it.p:''))}" style="top:${top}px;height:${h}px;left:calc(${l}% + 2px);right:auto;width:calc(${w}% - 4px);background:${c[1]}33;border-color:${c[3]};color:#1b2333"><b><span class="rp">↻</span>${esc(it.t)}</b>${h>30?`<small>${it.s}–${it.e}</small>`:''}${h>46&&it.p?`<small class="pl">📍${esc(it.p)}</small>`:''}<span class="rz"></span></button>`;
       return `<button class="tt-e" data-act="ev-edit" data-kind="e" data-dk="${it.dk}" data-id="${it.id}" title="${esc(it.t+(it.p?'\n📍 '+it.p:'')+(it.memo?'\n'+it.memo:''))}" style="top:${top}px;height:${h}px;left:calc(${l}% + 2px);width:calc(${w}% - 4px);background:${c[1]}33;color:#1b2333;border-left:3px solid ${c[3]}"><b>${esc(it.t)}</b>${h>30?`<small>${it.s}${it.e?'–'+it.e:''}</small>`:''}${h>46&&it.p?`<small class="pl">📍${esc(it.p)}</small>`:''}<span class="rz"></span></button>`;}).join('')}</div>`;
@@ -1342,7 +1347,7 @@ function vWeekTT(){
     const sp=SPANS.filter(x=>x.dk<=days[6]&&x.e.ed>=days[0]).map(x=>({x,a:days.indexOf(x.dk<days[0]?days[0]:x.dk),b:days.indexOf(x.e.ed>days[6]?days[6]:x.e.ed)})).sort((p,q)=>p.a-q.a||(q.b-q.a)-(p.b-p.a));
     const put=(a,b,html)=>{let L=0;while(true){let f=true;for(let i=a;i<=b;i++)if(occ[i][L]){f=false;break;}if(f)break;L++;}for(let i=a;i<=b;i++)occ[i][L]=1;h+=html.replace('@ROW@',L+1);};
     sp.forEach(o=>{const c=ECATS[evCat(o.x.e)]||ECATS.mine;const cl=o.x.dk<days[o.a],cr=o.x.e.ed>days[o.b];put(o.a,o.b,`<span class="evb wk ${cl?'cl':''} ${cr?'cr':''}" data-act="ev-edit" data-dk="${o.x.dk}" data-id="${o.x.e.id}" title="${esc(o.x.e.t)} · ${md(o.x.dk)}~${md(o.x.e.ed)}" style="grid-column:${o.a+1}/span ${o.b-o.a+1};grid-row:@ROW@;background:${c[1]}33;color:#1b2333;box-shadow:inset 3px 0 0 ${c[3]}">${esc(o.x.e.t)}</span>`);});
-    days.forEach((dk,i)=>(S.time.events[dk]||[]).filter(e=>!e.tm&&!(e.ed&&e.ed>dk)).forEach(e=>{const c=ECATS[evCat(e)]||ECATS.mine;put(i,i,`<span class="evb wk" data-act="ev-edit" data-dk="${dk}" data-id="${e.id}" style="grid-column:${i+1};grid-row:@ROW@;background:${c[1]}33;color:#1b2333;box-shadow:inset 3px 0 0 ${c[3]}">${esc(e.t)}</span>`);}));
+    days.forEach((dk,i)=>(S.time.events[dk]||[]).filter(e=>!e.tm&&!(e.ed&&e.ed>dk)).forEach(e=>{const c=ECATS[evCat(e)]||ECATS.mine;put(i,i,`<span class="evb wk add-drag" data-act="ev-edit" data-dk="${dk}" data-id="${e.id}" style="grid-column:${i+1};grid-row:@ROW@;background:${c[1]}33;color:#1b2333;box-shadow:inset 3px 0 0 ${c[3]}">${esc(e.t)}</span>`);}));
     alld=`<div class="tt-adw">${h}</div>`;}
   const times=Array.from({length:HEND-HSTART},(_,i)=>`<div>${i===0?'':pad(HSTART+i)+':00'}</div>`).join('');
   const actH=(tot.actor||0)/60,restH=(tot.rest||0)/60;
@@ -1363,6 +1368,7 @@ function vWeekTT(){
       <li><b>↻ 표시 = 반복 일정</b>빈칸을 누르면 그 날짜·시간으로 일정을 추가해요. 매일·매주·매달·매년 중에서 반복을 고를 수 있어요.</li>
       <li><b>끌어서 옮기고, 아래 끝을 끌어 늘리기</b>블록과 일정 모두 위아래·옆으로 끌어 옮길 수 있고, 아래 가장자리를 끌면 시간이 늘어나요. 휴대폰에선 <b>꾹 누른 뒤</b> 끌어요. 눌러서 시간을 직접 고칠 수도 있어요.</li>
       <li><b>↻ 없는 칸 = 한 번짜리 일정</b>월간 캘린더에 넣은 일정이 자동으로 함께 보여요. 날짜 머리글을 누르면 그날 일정을 한눈에 볼 수 있어요.</li>
+      <li><b>종일 일정 → 시간 칸으로</b>위쪽 ‘종일’ 줄의 일정을 시간 칸으로 끌어 놓으면 1시간짜리 일정이 돼요. 휴대폰에선 꾹 누른 뒤 끌어요.</li>
       <li><b>점선 칸 = 할 일 블럭</b>일정 사이 남는 시간에 할 일을 놓아 두는 칸이에요. ‘오늘 할 일’ 목록과 이어져 있어서, 동그라미를 누르면 양쪽에서 함께 완료돼요.</li>
       <li><b>쉼부터 넣어요</b>평일 하루는 연습 없는 날로. 그 자리를 먼저 막아 두세요.</li></ul></div>
   </div>`;
@@ -1938,7 +1944,7 @@ async function shrinkImg(file){try{const bmp=await createImageBitmap(file);const
 function aiModal(){AIIMG=[];
   openModal(`<h3><span class="spark">✦</span> AI 비서</h3><p class="desc">하고 싶은 걸 짧게 말하거나, 일정이 담긴 캡처를 올려 주세요. 반영하기 전에 한 번 보여 드릴게요.</p>
    <textarea class="f" id="aiT" rows="3" placeholder="예) 다음 주 화요일 3시 신촌 연기 스터디 등록해줘&#10;예) 이번 달 알바 끝나는 시간 전부 22시 반으로 바꿔줘&#10;예) 토요일 오전에 대본 외우기 할 일 넣어줘"></textarea>
-   <div class="ai-tools"><label class="btn sm"><input type="file" id="aiF" accept="image/*" multiple hidden>🖼 캡처 올리기</label>${PWA?'<input class="f" id="aiU" placeholder="링크 붙여넣기 (선택)" inputmode="url">':'<span class="desc" style="margin:0">링크는 여기서 열 수 없어요. 내용을 복사해 붙여 넣어 주세요. (Ctrl+V로 캡처 붙여넣기도 돼요)</span>'}</div>
+   <div class="ai-tools"><label class="btn sm"><input type="file" id="aiF" accept="image/*" multiple hidden>🖼 캡처 올리기</label>${PWA?'<input class="f" id="aiU" placeholder="링크 붙여넣기 (선택)" inputmode="url"><span class="desc pc-only" style="margin:0;width:100%">PC에선 캡처를 이 창에 끌어다 놓아도 돼요.</span>':'<span class="desc" style="margin:0">캡처는 이 창에 끌어다 놓거나 Ctrl+V로 붙여 넣어도 돼요. 링크는 여기서 열 수 없어서, 내용을 복사해 붙여 넣어 주세요.</span>'}</div>
    <div id="aiThumbs" class="ai-thumbs"></div>
    <div id="aiOut"></div><p class="err" id="aiErr"></p>
    <div class="actions" id="aiAct">${PWA?'<button class="btn ghost left" data-act="ai-key">AI 키 설정</button>':''}<button class="btn" data-act="m-cancel">닫기</button><button class="btn primary" data-act="ai-run">보내기</button></div>`,{acts:null});
@@ -2022,6 +2028,34 @@ function ttMove(cx,cy){const e={clientX:cx,clientY:cy};const dy=cy-TTD.y;
   const cols=$$('.tt-col');const c=cols.find(c=>{const r=c.getBoundingClientRect();return e.clientX>=r.left&&e.clientX<r.right;});
   if(c){TTD.d1=+c.dataset.d;const r0=TTD.col.getBoundingClientRect(),r1=c.getBoundingClientRect();TTD.el.style.transform=`translateX(${r1.left-r0.left}px)`;}
 }
+/* 주간: 종일 일정을 시간 칸으로 끌어 놓기 */
+let ADD=null;
+function addCol(x,y){const g=ADD&&ADD.ghost;if(g)g.style.display='none';const el=document.elementFromPoint(x,y);if(g)g.style.display='';return el&&el.closest&&el.closest('.tt-col');}
+function addMin(col,y){const r=col.getBoundingClientRect();return Math.max(HSTART*60,Math.min(23*60,HSTART*60+Math.floor((y-r.top)/PX/30)*30));}
+function addMove(x,y){if(!ADD)return;
+  if(!ADD.moved){if(Math.hypot(x-ADD.x,y-ADD.y)<6)return;ADD.moved=true;const g=ADD.el.cloneNode(true);g.classList.add('add-ghost');g.style.width=Math.min(220,ADD.el.offsetWidth)+'px';document.body.appendChild(g);ADD.ghost=g;const h=document.createElement('div');h.className='add-hint';document.body.appendChild(h);ADD.hint=h;}
+  ADD.ghost.style.left=(x-20)+'px';ADD.ghost.style.top=(y-12)+'px';
+  $$('.tt-col.add-over').forEach(c=>c.classList.remove('add-over'));const col=addCol(x,y);
+  if(col){col.classList.add('add-over');const m=addMin(col,y);ADD.hint.textContent=`${md(col.dataset.dk)} ${fmtMin(m)}–${fmtMin(m+60)}`;ADD.hint.style.display='';ADD.hint.style.left=(x+14)+'px';ADD.hint.style.top=(y+16)+'px';}else ADD.hint.style.display='none';}
+function addEnd(x,y,cancel){if(!ADD)return;const A=ADD;ADD=null;if(A.ghost)A.ghost.remove();if(A.hint)A.hint.remove();$$('.tt-col.add-over').forEach(c=>c.classList.remove('add-over'));A.el.classList.remove('lp');
+  if(!A.moved||cancel)return;SUPPRESS_CLICK=true;setTimeout(()=>{SUPPRESS_CLICK=false;},350);
+  const col=addCol(x,y);if(!col){toast('시간 칸 위에 놓아 주세요.');return;}
+  const dk=A.el.dataset.dk,id=A.el.dataset.id;const e=findEv(dk,id);if(!e)return;const m=addMin(col,y);const ndk=col.dataset.dk;
+  e.allday=false;e.tm=fmtMin(m);e.te=fmtMin(Math.min(24*60-1,m+60));delete e.ed;if(ndk!==dk)moveEv(dk,id,ndk);
+  markDirty('time');render(true);toast(`${e.t} · ${md(ndk)} ${e.tm}–${e.te}`);}
+document.addEventListener('pointerdown',e=>{const el=e.target.closest&&e.target.closest('.add-drag');if(!el||e.button>0||e.pointerType==='touch')return;e.preventDefault();ADD={el,x:e.clientX,y:e.clientY,moved:false};});
+document.addEventListener('pointermove',e=>{if(ADD&&!ADD.touch)addMove(e.clientX,e.clientY);});
+document.addEventListener('pointerup',e=>{if(ADD&&!ADD.touch)addEnd(e.clientX,e.clientY);});
+let ADLP=null;
+document.addEventListener('touchstart',e=>{const el=e.target.closest&&e.target.closest('.add-drag');if(!el||e.touches.length!==1)return;const t=e.touches[0];
+  ADLP={x:t.clientX,y:t.clientY,timer:setTimeout(()=>{ADLP=null;ADD={el,x:t.clientX,y:t.clientY,moved:false,touch:true};el.classList.add('lp');if(navigator.vibrate)try{navigator.vibrate(12);}catch(_){}toast('시간 칸으로 끌어 놓으면 1시간 일정이 돼요');},380)};},{passive:true});
+document.addEventListener('touchmove',e=>{if(ADD&&ADD.touch){e.preventDefault();const t=e.touches[0];addMove(t.clientX,t.clientY);return;}if(ADLP){const t=e.touches[0];if(Math.hypot(t.clientX-ADLP.x,t.clientY-ADLP.y)>8){clearTimeout(ADLP.timer);ADLP=null;}}},{passive:false});
+document.addEventListener('touchend',e=>{if(ADLP){clearTimeout(ADLP.timer);ADLP=null;}if(ADD&&ADD.touch){e.preventDefault();const t=e.changedTouches[0];addEnd(t.clientX,t.clientY);}},{passive:false});
+document.addEventListener('touchcancel',()=>{if(ADLP){clearTimeout(ADLP.timer);ADLP=null;}if(ADD)addEnd(0,0,true);});
+/* AI 비서: 이미지 끌어다 놓기 */
+document.addEventListener('dragover',e=>{if(!$('#aiT'))return;if([...(e.dataTransfer&&e.dataTransfer.types||[])].includes('Files')){e.preventDefault();const m=$('.modal');m&&m.classList.add('drop-on');}});
+document.addEventListener('dragleave',e=>{if(e.relatedTarget)return;const m=$('.modal');m&&m.classList.remove('drop-on');});
+document.addEventListener('drop',e=>{if(!$('#aiT'))return;e.preventDefault();const m=$('.modal');m&&m.classList.remove('drop-on');const fs=[...(e.dataTransfer&&e.dataTransfer.files||[])].filter(f=>f.type.startsWith('image/')).slice(0,4);if(!fs.length){toast('이미지 파일만 올릴 수 있어요.');return;}Promise.all(fs.map(shrinkImg)).then(bs=>{AIIMG=AIIMG.concat(bs).slice(0,4);aiThumbs();toast(`캡처 ${bs.length}장을 올렸어요.`);});});
 /* 월간 캘린더: 좌우로 밀어 달 넘기기 */
 let SW=null;
 document.addEventListener('touchstart',e=>{const g=e.target.closest&&e.target.closest('#calGrid');if(!g||e.touches.length!==1){SW=null;return;}const t=e.touches[0];SW={x:t.clientX,y:t.clientY,t:Date.now()};},{passive:true});
@@ -2033,7 +2067,7 @@ document.addEventListener('touchstart',e=>{
   if(e.touches.length!==1){if(LP){clearTimeout(LP.timer);LP=null;}return;}
   if(e.target.closest&&e.target.closest('.tk-ck'))return;
   const el=e.target.closest&&e.target.closest('.tt-b,.tt-e,.tt-k');if(!el)return;const col=el.closest('.tt-col');if(!col)return;
-  const t=e.touches[0];const r=el.getBoundingClientRect();const resize=r.bottom-t.clientY<14&&r.height>30;
+  const t=e.touches[0];const r=el.getBoundingClientRect();const resize=r.bottom-t.clientY<Math.max(16,Math.min(26,r.height*0.3))&&r.height>26;
   LP={el,x:t.clientX,y:t.clientY,timer:setTimeout(()=>{if(!LP||LP.el!==el)return;LP=null;
     TTD={el,col,resize,x:t.clientX,y:t.clientY,moved:true,touch:true,top:parseFloat(el.style.top),h:parseFloat(el.style.height),d0:+col.dataset.d,d1:+col.dataset.d,dy:0};
     el.classList.add('ttdrag','lp');if(navigator.vibrate)try{navigator.vibrate(12);}catch(_){}toast(resize?'위아래로 끌어 길이를 바꿔요':'끌어서 옮겨요');},380)};
@@ -2337,7 +2371,7 @@ load();
 })();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{});
-(function(){const B="2a2f4f561d";
+(function(){const B="153258f20a";
 async function chk(){try{const v=await fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json());
 if(!v||v.b===B||sessionStorage.getItem("pm-upd")===v.b)return;sessionStorage.setItem("pm-upd",v.b);
 const r=await fetch("index.html",{cache:"reload"});if(!r.ok)return;
