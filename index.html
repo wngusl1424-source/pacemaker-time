@@ -412,6 +412,20 @@ a.plc{font-size:12px;color:var(--blue);text-decoration:none;white-space:nowrap;m
 .lgrow{align-items:center}
 .scope-q{margin:0 auto 0 0;align-self:center}
 .mbar{display:none}
+.cal-w{grid-column:1/-1;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));min-height:118px;row-gap:2px;padding-bottom:4px}
+.cal-w .cal-d{min-height:0;padding:0;border-left:1px solid var(--line2)}.cal-w .cal-d.c0{border-left:0}
+.cal-n{position:relative;z-index:1;pointer-events:none;padding:6px 6px 2px;min-width:0}
+.cal-n.sun .n{color:#e5484d}.cal-n.sat .n{color:#3b6fe0}.cal-n.today .n{background:var(--blue);color:#fff}
+.cal-it{position:relative;z-index:1;pointer-events:none;min-width:0;padding:0 4px}
+.cal-it.span{pointer-events:auto;cursor:pointer;padding:0 3px}
+.cal-it.span .evb.cl{border-top-left-radius:0;border-bottom-left-radius:0;margin-left:-3px}.cal-it.span .evb.cr{border-top-right-radius:0;border-bottom-right-radius:0;margin-right:-3px}
+.cal-x{display:flex;flex-direction:column;gap:2px;padding-top:1px}
+.tt-adw{grid-column:2/span 7;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-auto-rows:auto;row-gap:2px;padding:4px 0;min-height:30px;border-bottom:1px solid var(--line);position:relative;background:#fff}
+.tt-adw{background-image:linear-gradient(to right,var(--line2) 1px,transparent 1px);background-size:calc(100% / 7) 100%}
+.tt-adw .evb.wk{margin:0 3px;cursor:pointer;z-index:1;position:relative}
+.tt-adw .evb.cl{margin-left:0;border-top-left-radius:0;border-bottom-left-radius:0}.tt-adw .evb.cr{margin-right:0;border-top-right-radius:0;border-bottom-right-radius:0}
+.ttl-btn small{display:block;font-size:11px;color:var(--mute);font-weight:400}
+.wp-list{display:grid;gap:6px;margin-top:14px}.wp-w{padding:12px 14px;border-radius:12px;background:#f5f6f8;border:0;font:inherit;font-size:15px;text-align:left;cursor:pointer;color:var(--ink)}.wp-w.now{box-shadow:inset 0 0 0 1.5px var(--blue-200)}.wp-w.on{background:var(--blue);color:#fff}
 .ai-btn{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#eef2ff,#f5efff);border-color:#d9defa;color:#3b4ba8;font-weight:600}
 .ai-btn:hover{background:linear-gradient(135deg,#e3e9ff,#ece3ff)}
 .spark{color:#6d5ae6;font-size:15px}.spin{display:inline-block;animation:spk 1.2s linear infinite}@keyframes spk{to{transform:rotate(360deg)}}
@@ -586,6 +600,8 @@ a.plc{font-size:12px;color:var(--blue);text-decoration:none;white-space:nowrap;m
   .tt .tt-b b,.tt .tt-e b{white-space:normal;word-break:break-all;font-size:10px}.tt .tt-b small,.tt .tt-e small,.tt .tt-b .rp{display:none}
   .cal{border-radius:10px}.cal-h{padding:6px 0;font-size:11px}
   .cal-d{min-height:84px;padding:3px 2px;gap:2px}.cal-d .n{font-size:11px;padding:0 3px}
+  .cal-w{min-height:84px}.cal-n{padding:3px 2px 1px}.cal-it{padding:0 2px}.cal-n .n{font-size:11px;padding:0 3px}
+  .cal-n.nrow{flex-wrap:wrap;gap:0 2px}.cal-n .hol{font-size:8.5px;letter-spacing:-.3px;max-width:100%;padding-left:2px}
   .cal-d .nrow{flex-wrap:wrap;gap:0 2px}.cal-d .hol{font-size:8.5px;letter-spacing:-.3px;max-width:100%;padding-left:2px}
   .tt-h .hol{font-size:8.5px;letter-spacing:-.4px;white-space:nowrap;overflow:hidden;text-overflow:clip}
   .cal .evb,.cal .evt{font-size:10px;padding:1px 3px;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:clip}.cal .evt b{display:none}
@@ -747,6 +763,9 @@ function migrateTime(){const T=S.time;let ch=false;
       if(b.grp&&b.rep!=='m'){const k=[b.grp,b.t,b.s,b.e,b.c].join('|');const f0=seen[k];if(f0){if(!f0.r.days.includes(b.d))f0.r.days.push(b.d);f0.ex=[...new Set([...(f0.ex||[]),...(b.ex||[])])];b._x=1;}else seen[k]=b;}});
     T.blocks=T.blocks.filter(b=>!b._x);T.blocks.forEach(b=>{delete b.d;delete b.rep;delete b.md;delete b.grp;});T.mig=2;ch=true;}
   if(T.mig<3){T.blocks.forEach(b=>{if(!b.from)b.from='2026-11-01';});T.mig=3;ch=true;}
+  if(T.mig<5){const keys=Object.keys(T.events).sort();const isAD=e=>e&&e.allday===true&&!e.tm&&!e.ed;
+    keys.forEach(dk=>{(T.events[dk]||[]).slice().forEach(e=>{if(!isAD(e)||e._m)return;let last=dk;while(true){const nk=addDays(last,1);const nx=(T.events[nk]||[]).find(z=>isAD(z)&&!z._m&&z.t===e.t&&evCat(z)===evCat(e));if(!nx)break;nx._m=1;last=nk;}if(last!==dk){e.ed=last;ch=true;}});});
+    keys.forEach(dk=>{if(!T.events[dk])return;T.events[dk]=T.events[dk].filter(e=>!e._m);if(!T.events[dk].length)delete T.events[dk];});T.mig=5;ch=true;}
   if(T.mig<4){Object.keys(T.events).forEach(dk=>{const h=HOLI[dk];if(!h)return;const names=h[0].split(' · ');const a=T.events[dk].filter(e=>!(evCat(e)==='mine'&&names.includes((e.t||'').trim())));if(a.length!==T.events[dk].length){if(a.length)T.events[dk]=a;else delete T.events[dk];}});T.mig=4;ch=true;}if(ch&&typeof dirty!=='undefined')dirty.add('time');}
 function applyLoaded(o){const x=JSON.parse(JSON.stringify(o||{}));S.todo={};Object.entries(x.todo||{}).forEach(([k,v])=>{if(v&&typeof v==='object')S.todo[k]=v;});S.core=normCore(x.core);const t=x.time||{};S.time={blocks:Array.isArray(t.blocks)?t.blocks:[],events:(t.events&&typeof t.events==='object')?t.events:{},rem:Array.isArray(t.rem)?t.rem:[],mig:t.mig||0,cats:Array.isArray(t.cats)?t.cats:null};migrateTime();rebuildCats();const r=x.reviews||{};S.reviews={w:r.w||{},m:r.m||{}};S.months={};Object.entries(x.months||{}).forEach(([k,v])=>{S.months[k]=normMonth(v);});}
 const hasContent=()=>S.core.center||S.core.goals.some(g=>g.title||g.items.some(Boolean))||S.time.blocks.length||Object.keys(S.months).length||Object.keys(S.reviews.w).length;
@@ -960,7 +979,7 @@ const TABS=PWA?[['time','시간표']]:[['today','오늘'],['mandalart','만다�
 function renderMbar(){const el=$('#mbar');if(!el)return;el.innerHTML=MBAR.map(([k,l,p])=>`<button class="${(k==='more'?UI.tab!=='time':UI.tab==='time'&&UI.tt===k)?'on':''}" data-act="mb" data-v="${k}"><svg viewBox="0 0 20 20" width="22" height="22"><path d="${p}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>${l}</span></button>`).join('');}
 function renderNav(){renderMbar();const p=S.core.pending.filter(x=>!x.done).length;$('#nav').innerHTML=TABS.map(([k,l])=>`<button class="tab ${UI.tab===k?'on':''}" data-tab="${k}">${l}${k==='exec'&&p?`<i class="badge">${p}</i>`:''}</button>`).join('');}
 function render(keepScroll){
-  rebuildCats();renderNav();
+  rebuildCats();buildSpans();renderNav();
   const y=window.scrollY;
   const V={today:vToday,mandalart:vMand,exec:vExec,review:vReview,time:vTime,history:vHistory}[UI.tab]||vToday;
   $('#view').innerHTML=V();
@@ -1005,7 +1024,7 @@ function vToday(){
   if(!inRange){habitsHtml=`<p class="desc">12월 1일 준비 달부터 매일 체크할 수 있어요. 미리 12월 습관을 만들어 두면 첫날부터 바로 시작돼요.</p><button class="btn sm" data-act="go-month" data-m="${firstM}">12월 습관 만들기 →</button>`;}
   else if(!mo.habits.length){habitsHtml=`<p class="desc">이번 달 습관이 아직 없어요. 처음엔 2~3개면 충분해요.</p><button class="btn sm" data-act="go-month" data-m="${TODAYM}">습관 만들기 →</button>`;}
   else{const d=+TODAYK.slice(8);habitsHtml=`<div class="hlist">${mo.habits.map(h=>{const on=!!(mo.checks[h.id]&&mo.checks[h.id][d]);const wc=countWeek(h.id,CURWEEK);return `<div class="hitem"><button class="ck ${on?'on':''}" data-act="ck" data-m="${TODAYM}" data-h="${h.id}" data-d="${d}" aria-label="체크"></button><div class="nm">${esc(h.name)} ${isYH(h.id)?'<span class="st-tag doing">연간</span>':''}<small>${esc(h.goal!=null&&gTitle(h.goal)?gTitle(h.goal):'')}</small></div><span class="wk">이번 주 ${wc}/${h.freq}</span></div>`;}).join('')}</div>`;}
-  const blocks=blocksOn(TODAYK).sort((a,b)=>toMin(a.s)-toMin(b.s));const evs=(S.time.events[TODAYK]||[]).slice().sort((a,b)=>(a.tm||'').localeCompare(b.tm||''));
+  const blocks=blocksOn(TODAYK).sort((a,b)=>toMin(a.s)-toMin(b.s));const evs=evsOn(TODAYK).map(x=>x.e).sort((a,b)=>(a.tm||'').localeCompare(b.tm||''));
   const CC=k=>ECATS[k]||ECATS.mine;
   const sched=[...evs.map(e=>`<div class="sch"><span class="bar-c" style="background:${CC(evCat(e))[1]}"></span><span class="tm">${e.tm?`${e.tm}${e.te?' – '+e.te:''}`:'종일'}</span><span>${esc(e.t)} <span class="st-tag">${CC(evCat(e))[0]}</span> ${placeLink(e.p)}</span></div>`),...blocks.map(b=>`<div class="sch"><span class="bar-c" style="background:${CC(catOf(b.c))[1]}"></span><span class="tm">${b.s} – ${b.e}</span><span>${esc(b.t)} ${placeLink(b.p)}</span></div>`)].join('');
   const wr=S.reviews.w[CURWEEK];
@@ -1308,7 +1327,7 @@ function vWeekTT(){
     const dk=days[d];const dd=parseD(dk);const isT=dk===TODAYK;
     const hl=holLbl(dk);heads+=`<div class="tt-h ${isT?'today':''} ${d===6||isRed(dk)?'red':''}"><button data-act="cal-day" data-dk="${dk}" title="${esc(HOLI[dk]?HOLI[dk][0]:'이 날 일정 보기·추가')}">${WDM[d]}<span>${dd.getDate()}</span></button>${hl?`<div class="hol ${isRed(dk)?'red':''}">${esc(hl)}</div>`:''}</div>`;
     const evs=S.time.events[dk]||[];
-    alld+=`<div class="tt-ad">${evs.filter(e=>!e.tm).map(e=>{const c=ECATS[evCat(e)]||ECATS.mine;return `<span class="evb" data-act="ev-edit" data-dk="${dk}" data-id="${e.id}" style="background:${c[1]}33;color:#1b2333;box-shadow:inset 3px 0 0 ${c[3]}">${esc(e.t)}</span>`;}).join('')}</div>`;
+
     const items=[];
     blocksOn(dk).forEach(b=>{const cat=catOf(b.c);items.push({kind:'b',id:b.id,t:b.t,p:b.p||'',rt:ruleText(b.r,b.until),cat,s:b.s,e:b.e,s0:toMin(b.s),e0:toMin(b.e)});tot[cat]=(tot[cat]||0)+toMin(b.e)-toMin(b.s);});
     evs.filter(e=>e.tm).forEach(e=>{const cat=evCat(e);const s0=toMin(e.tm);let e0=e.te?toMin(e.te):s0+60;if(e0<=s0)e0=s0+60;items.push({kind:'e',id:e.id,memo:e.memo||'',p:e.p||'',t:e.t,cat,s:e.tm,e:e.te||'',s0,e0,dk});tot[cat]=(tot[cat]||0)+e0-s0;});
@@ -1319,11 +1338,17 @@ function vWeekTT(){
       if(it.kind==='b')return `<button class="tt-b" data-act="edit-block" data-kind="b" data-dk="${dk}" data-id="${it.id}" title="${esc(it.t+' · '+it.rt+(it.p?'\n📍 '+it.p:''))}" style="top:${top}px;height:${h}px;left:calc(${l}% + 2px);right:auto;width:calc(${w}% - 4px);background:${c[1]}33;border-color:${c[3]};color:#1b2333"><b><span class="rp">↻</span>${esc(it.t)}</b>${h>30?`<small>${it.s}–${it.e}</small>`:''}${h>46&&it.p?`<small class="pl">📍${esc(it.p)}</small>`:''}<span class="rz"></span></button>`;
       return `<button class="tt-e" data-act="ev-edit" data-kind="e" data-dk="${it.dk}" data-id="${it.id}" title="${esc(it.t+(it.p?'\n📍 '+it.p:'')+(it.memo?'\n'+it.memo:''))}" style="top:${top}px;height:${h}px;left:calc(${l}% + 2px);width:calc(${w}% - 4px);background:${c[1]}33;color:#1b2333;border-left:3px solid ${c[3]}"><b>${esc(it.t)}</b>${h>30?`<small>${it.s}${it.e?'–'+it.e:''}</small>`:''}${h>46&&it.p?`<small class="pl">📍${esc(it.p)}</small>`:''}<span class="rz"></span></button>`;}).join('')}</div>`;
   }
+  {const occ=Array.from({length:7},()=>[]);let h='';
+    const sp=SPANS.filter(x=>x.dk<=days[6]&&x.e.ed>=days[0]).map(x=>({x,a:days.indexOf(x.dk<days[0]?days[0]:x.dk),b:days.indexOf(x.e.ed>days[6]?days[6]:x.e.ed)})).sort((p,q)=>p.a-q.a||(q.b-q.a)-(p.b-p.a));
+    const put=(a,b,html)=>{let L=0;while(true){let f=true;for(let i=a;i<=b;i++)if(occ[i][L]){f=false;break;}if(f)break;L++;}for(let i=a;i<=b;i++)occ[i][L]=1;h+=html.replace('@ROW@',L+1);};
+    sp.forEach(o=>{const c=ECATS[evCat(o.x.e)]||ECATS.mine;const cl=o.x.dk<days[o.a],cr=o.x.e.ed>days[o.b];put(o.a,o.b,`<span class="evb wk ${cl?'cl':''} ${cr?'cr':''}" data-act="ev-edit" data-dk="${o.x.dk}" data-id="${o.x.e.id}" title="${esc(o.x.e.t)} · ${md(o.x.dk)}~${md(o.x.e.ed)}" style="grid-column:${o.a+1}/span ${o.b-o.a+1};grid-row:@ROW@;background:${c[1]}33;color:#1b2333;box-shadow:inset 3px 0 0 ${c[3]}">${esc(o.x.e.t)}</span>`);});
+    days.forEach((dk,i)=>(S.time.events[dk]||[]).filter(e=>!e.tm&&!(e.ed&&e.ed>dk)).forEach(e=>{const c=ECATS[evCat(e)]||ECATS.mine;put(i,i,`<span class="evb wk" data-act="ev-edit" data-dk="${dk}" data-id="${e.id}" style="grid-column:${i+1};grid-row:@ROW@;background:${c[1]}33;color:#1b2333;box-shadow:inset 3px 0 0 ${c[3]}">${esc(e.t)}</span>`);}));
+    alld=`<div class="tt-adw">${h}</div>`;}
   const times=Array.from({length:HEND-HSTART},(_,i)=>`<div>${i===0?'':pad(HSTART+i)+':00'}</div>`).join('');
   const actH=(tot.actor||0)/60,restH=(tot.rest||0)/60;
   const a=parseD(days[0]),z=parseD(days[6]);
   return `
-  <div class="toolbar ttbar"><div class="weeknav"><button class="iconbtn" data-act="ttw" data-w="${TTWEEKS[wi-1]||''}" ${wi<=0?'disabled':''}>‹</button><div class="ttl">${a.getMonth()+1}/${a.getDate()} – ${z.getMonth()+1}/${z.getDate()}<small>${a.getFullYear()}년</small></div><button class="iconbtn" data-act="ttw" data-w="${TTWEEKS[wi+1]||''}" ${wi>=TTWEEKS.length-1?'disabled':''}>›</button></div>${wk!==cur&&TTWEEKS.includes(cur)?`<button class="btn sm ghost ttw-now" data-act="ttw" data-w="${cur}">이번 주</button>`:''}<span class="sp"></span><button class="btn ai-btn" data-act="ai-open" title="AI 비서: 캡처·글로 일정 추가"><span class="spark">✦</span><span class="ai-l">AI<span class="ai-l2"> 비서</span></span></button><button class="btn" data-act="add-task" data-dk="${days.includes(TODAYK)?TODAYK:days[0]}">+ 할 일<span class="lbl-l"> 블럭</span></button><button class="btn primary" data-act="add-item" data-dk="${days.includes(TODAYK)?TODAYK:days[0]}">+ 일정<span class="lbl-l"> 추가</span></button></div>
+  <div class="toolbar ttbar"><div class="weeknav"><button class="iconbtn" data-act="ttw" data-w="${TTWEEKS[wi-1]||''}" ${wi<=0?'disabled':''}>‹</button><button class="ttl ttl-btn" data-act="wpick" title="원하는 주로 이동">${a.getMonth()+1}/${a.getDate()} – ${z.getMonth()+1}/${z.getDate()} <span class="caret">▾</span><small>${a.getFullYear()}년</small></button><button class="iconbtn" data-act="ttw" data-w="${TTWEEKS[wi+1]||''}" ${wi>=TTWEEKS.length-1?'disabled':''}>›</button></div>${wk!==cur&&TTWEEKS.includes(cur)?`<button class="btn sm ghost ttw-now" data-act="ttw" data-w="${cur}">이번 주</button>`:''}<span class="sp"></span><button class="btn ai-btn" data-act="ai-open" title="AI 비서: 캡처·글로 일정 추가"><span class="spark">✦</span><span class="ai-l">AI<span class="ai-l2"> 비서</span></span></button><button class="btn" data-act="add-task" data-dk="${days.includes(TODAYK)?TODAYK:days[0]}">+ 할 일<span class="lbl-l"> 블럭</span></button><button class="btn primary" data-act="add-item" data-dk="${days.includes(TODAYK)?TODAYK:days[0]}">+ 일정<span class="lbl-l"> 추가</span></button></div>
   <button class="fab-today" data-act="ttw" data-w="${cur}">오늘</button>
   <div class="row lgrow" style="margin-bottom:10px">${Object.entries(ECATS).map(([k,[n,c]])=>`<span class="lg-c"><i style="background:${c}"></i>${n}${tot[k]?` <b style="color:var(--ink)">${(tot[k]/60).toFixed(tot[k]%60?1:0)}h</b>`:''}</span>`).join('')}<button class="btn sm ghost" data-act="cat-manage">카테고리 편집</button></div>
   <div class="card" style="padding:14px"><div class="tt-wrap"><div class="tt">
@@ -1385,9 +1410,14 @@ function ruleText(r,until){if(!r)return '';const n=Math.max(1,+r.n||1);let t='';
   return t;}
 const mapUrl=p=>'https://map.kakao.com/link/search/'+encodeURIComponent(p);
 const placeLink=p=>p?`<a class="plc" href="${mapUrl(p)}" target="_blank" rel="noopener" title="카카오맵에서 열기">📍 ${esc(p)}</a>`:'';
-function calItems(dk){
+let SPANS=[];
+function buildSpans(){SPANS=[];if(!S.time)return;Object.entries(S.time.events).forEach(([dk,a])=>(a||[]).forEach(e=>{if(e.ed&&e.ed>dk)SPANS.push({dk,e});}));}
+function evsOn(dk){const sp=SPANS.filter(x=>x.dk<dk&&x.e.ed>=dk);return [...sp,...(S.time.events[dk]||[]).map(e=>({dk,e}))];}
+const md=k=>`${+k.slice(5,7)}/${+k.slice(8)}`;
+function calItems(dk,mode){
   const bl=blocksOn(dk).filter(b=>b.cal).sort((a,b)=>toMin(a.s)-toMin(b.s)).map(b=>({allday:true,t:`${b.t} ${hourRange(b.s,b.e)}`,cat:catOf(b.c),k:'0'+b.s}));
-  const ev=(S.time.events[dk]||[]).map((e,i)=>({allday:isAllDay(e),t:e.t,tm:e.tm,cat:evCat(e),k:(isAllDay(e)?'1':'2')+(isAllDay(e)?String(i).padStart(3,'0'):(e.tm||''))}));
+  const src=mode==='own'?(S.time.events[dk]||[]).map(e=>({dk,e})):evsOn(dk);
+  const ev=src.filter(x=>!(mode==='grid'&&x.e.ed&&x.e.ed>x.dk)).map((x,i)=>{const e=x.e;const ad=isAllDay(e)||!!(e.ed&&e.ed>x.dk);return {allday:ad,t:e.t+(e.ed&&e.ed>x.dk&&mode!=='grid'?` (${md(x.dk)}~${md(e.ed)})`:''),tm:e.tm,cat:evCat(e),id:e.id,sdk:x.dk,k:(ad?'1':'2')+(ad?String(i).padStart(3,'0'):(e.tm||''))};});
   return [...bl,...ev].sort((a,b)=>a.k.localeCompare(b.k));
 }
 const evHtml=x=>{const c=ECATS[x.cat]||ECATS.mine;return x.allday?`<span class="evb" style="background:${c[1]};color:${c[2]}">${esc(x.t)}</span>`:`<span class="evt" style="color:${c[3]}"><b>${ampm(x.tm)}</b>${esc(x.t)}</span>`;};
@@ -1396,13 +1426,30 @@ function vCal(){
   const remBy={};S.time.rem.forEach(r=>remInst(r,`${mk}-01`,`${mk}-${pad(n)}`).forEach(x=>{(remBy[x.eff]=remBy[x.eff]||[]).push(x);}));
   const off=new Date(y,m-1,1).getDay();const mo=S.months[mk];
   let cells=WD.map((w,i)=>`<div class="cal-h ${i===0?'sun':''}">${w}</div>`).join('');
-  for(let i=0;i<off;i++)cells+='<div class="cal-d out"></div>';
-  for(let d=1;d<=n;d++){const dk=`${mk}-${pad(d)}`;const wd=new Date(y,m-1,d).getDay();const its=calItems(dk);
-    let hp=null;if(mo&&mo.habits.length){const c=mo.habits.filter(h=>mo.checks[h.id]&&mo.checks[h.id][d]).length;hp=Math.round(c/mo.habits.length*100);}
-    const hl=holLbl(dk);cells+=`<div class="cal-d ${dk===TODAYK?'today':''} ${wd===0||isRed(dk)?'sun':''} ${wd===6&&!isRed(dk)?'sat':''}" data-act="cal-day" data-dk="${dk}"><span class="nrow"><span class="n">${d}</span>${hl?`<span class="hol ${isRed(dk)?'red':''}" title="${esc(HOLI[dk][0])}">${esc(hl)}</span>`:''}</span>${its.slice(0,CLIM()).map(evHtml).join('')}${its.length>CLIM()?`<span class="more">+${its.length-CLIM()}</span>`:''}${(remBy[dk]||[]).map(x=>`<span class="ev rem ${x.st?'dn':''}">알림 · ${esc(x.r.t)}</span>`).join('')}${hp!=null&&hp>0?`<div class="hd" title="습관 ${hp}%"><i style="width:${hp}%"></i></div>`:''}</div>`;}
-  const tail=(7-((off+n)%7))%7;for(let i=0;i<tail;i++)cells+='<div class="cal-d out"></div>';
+  const LIM=CLIM();const start=addDays(`${mk}-01`,-off);const nW=Math.ceil((off+n)/7);
+  for(let w=0;w<nW;w++){
+    const days=Array.from({length:7},(_,i)=>addDays(start,w*7+i));const inM=days.map(k=>k.slice(0,7)===mk);
+    const occ=Array.from({length:7},()=>[]);let html='';let maxL=0;const hidden=Array(7).fill(0);
+    const sp=SPANS.filter(x=>x.dk<=days[6]&&x.e.ed>=days[0]).map(x=>{let a=days.indexOf(x.dk<days[0]?days[0]:x.dk),b=days.indexOf(x.e.ed>days[6]?days[6]:x.e.ed);while(a<=b&&!inM[a])a++;while(b>=a&&!inM[b])b--;return {x,a,b};}).filter(o=>o.a<=o.b).sort((p,q)=>p.a-q.a||(q.b-q.a)-(p.b-p.a));
+    sp.forEach(o=>{let L=0;while(true){let free=true;for(let i=o.a;i<=o.b;i++)if(occ[i][L]){free=false;break;}if(free)break;L++;}
+      for(let i=o.a;i<=o.b;i++)occ[i][L]=1;
+      if(L>=LIM){for(let i=o.a;i<=o.b;i++)hidden[i]++;return;}maxL=Math.max(maxL,L+1);
+      const c=ECATS[evCat(o.x.e)]||ECATS.mine;const cl=o.x.dk<days[o.a],cr=o.x.e.ed>days[o.b];
+      html+=`<div class="cal-it span" data-act="ev-edit" data-dk="${o.x.dk}" data-id="${o.x.e.id}" title="${esc(o.x.e.t)} · ${md(o.x.dk)}~${md(o.x.e.ed)}" style="grid-column:${o.a+1}/span ${o.b-o.a+1};grid-row:${L+2}"><span class="evb ${cl?'cl':''} ${cr?'cr':''}" style="background:${c[1]};color:${c[2]}">${cl?'':''}${esc(o.x.e.t)}</span></div>`;});
+    const ex=[];
+    days.forEach((dk,i)=>{const d=+dk.slice(8);const wd=i;
+      if(!inM[i]){html+=`<div class="cal-d out ${i===0?'c0':''}" style="grid-column:${i+1};grid-row:1/-1"></div>`;return;}
+      const red=wd===0||isRed(dk);const hl=holLbl(dk);
+      html+=`<div class="cal-d ${i===0?'c0':''} ${dk===TODAYK?'today':''}" data-act="cal-day" data-dk="${dk}" style="grid-column:${i+1};grid-row:1/-1"></div><div class="nrow cal-n ${dk===TODAYK?'today':''} ${red?'sun':''} ${wd===6&&!isRed(dk)?'sat':''}" style="grid-column:${i+1};grid-row:1"><span class="n">${d}</span>${hl?`<span class="hol ${isRed(dk)?'red':''}" title="${esc(HOLI[dk][0])}">${esc(hl)}</span>`:''}</div>`;
+      const its=calItems(dk,'grid');let L=0;
+      its.forEach(x=>{while(occ[i][L])L++;if(L>=LIM){hidden[i]++;return;}occ[i][L]=1;maxL=Math.max(maxL,L+1);html+=`<div class="cal-it" style="grid-column:${i+1};grid-row:${L+2}">${evHtml(x)}</div>`;L++;});
+      let hp=null;if(mo&&mo.habits.length){const c=mo.habits.filter(h=>mo.checks[h.id]&&mo.checks[h.id][d]).length;hp=Math.round(c/mo.habits.length*100);}
+      ex.push({i,h:`${hidden[i]?`<span class="more">+${hidden[i]}</span>`:''}${(remBy[dk]||[]).map(x=>`<span class="ev rem ${x.st?'dn':''}">알림 · ${esc(x.r.t)}</span>`).join('')}${hp!=null&&hp>0?`<div class="hd" title="습관 ${hp}%"><i style="width:${hp}%"></i></div>`:''}`});});
+    ex.forEach(o=>{if(o.h)html+=`<div class="cal-it cal-x" style="grid-column:${o.i+1};grid-row:${maxL+2}">${o.h}</div>`;});
+    cells+=`<div class="cal-w" style="grid-template-rows:auto repeat(${maxL},auto) auto 1fr">${html}</div>`;
+  }
   const i=CAL_MONTHS.indexOf(mk);
-  const up=Object.keys(S.time.events).filter(k=>k>=TODAYK).sort().flatMap(k=>calItems(k).filter((_,j)=>true).filter(x=>x.k[0]!=='0').map(x=>({k,x}))).slice(0,8);
+  const up=Object.keys(S.time.events).filter(k=>k>=TODAYK).sort().flatMap(k=>calItems(k,'own').filter(x=>x.k[0]!=='0').map(x=>({k,x}))).slice(0,8);
   return `
   <div class="toolbar"><div class="weeknav"><button class="iconbtn" data-act="cmonth" data-m="${CAL_MONTHS[i-1]||''}" ${i<=0?'disabled':''}>‹</button><button class="ttl ttl-btn" data-act="mpick" title="연도·월 고르기">${y}년 ${m}월 <span class="caret">▾</span></button><button class="iconbtn" data-act="cmonth" data-m="${CAL_MONTHS[i+1]||''}" ${i>=CAL_MONTHS.length-1?'disabled':''}>›</button></div><span class="sp"></span><button class="btn ai-btn" data-act="ai-open" title="AI 비서: 캡처·글로 일정 추가"><span class="spark">✦</span><span class="ai-l">AI<span class="ai-l2"> 비서</span></span></button></div>
   <div class="row lgrow" style="margin-bottom:10px">${Object.entries(ECATS).map(([k,[n,c]])=>`<span class="lg-c"><i style="background:${c}"></i>${n}</span>`).join('')}<span class="lg-c"><i style="background:#fff;box-shadow:inset 0 0 0 1px var(--blue-200)"></i>반복 알림</span></div>
@@ -1535,12 +1582,12 @@ function blockModal(id,preset){
   if(!ex)setTimeout(()=>{const x=$('#bT');x&&x.focus();},40);
 }
 function dayModal(dk){
-  const d=parseD(dk);const evs=(S.time.events[dk]||[]).slice().sort((a,b)=>(isAllDay(a)===isAllDay(b)?0:isAllDay(a)?-1:1)||(a.tm||'').localeCompare(b.tm||''));
+  const d=parseD(dk);const evs=evsOn(dk).map(x=>Object.assign({},x.e,{_sdk:x.dk})).sort((a,b)=>(isAllDay(a)===isAllDay(b)?0:isAllDay(a)?-1:1)||(a.tm||'').localeCompare(b.tm||''));
   const blocks=blocksOn(dk).sort((a,b)=>toMin(a.s)-toMin(b.s));
   openModal(`<h3>${d.getFullYear()!==TODAY.getFullYear()?d.getFullYear()+'년 ':''}${d.getMonth()+1}월 ${d.getDate()}일 ${WD[d.getDay()]}요일${HOLI[dk]?` <small class="hol ${isRed(dk)?'red':''}" style="font-size:13px">${esc(HOLI[dk][0])}</small>`:''}</h3>
    ${blocks.length?`<div class="chips" style="margin:6px 0 10px">${blocks.map(b=>`<button class="chip" data-act="edit-block" data-dk="${dk}" data-id="${b.id}" title="${esc(ruleText(b.r,b.until))}">↻ ${b.s}–${b.e} ${esc(b.t)}</button>`).join('')}</div>`:''}
    ${(()=>{const xs=S.time.rem.flatMap(r=>remInst(r,dk,dk));return xs.length?`<div>${xs.map(remRow).join('')}</div>`:'';})()}
-   <div class="evl">${evs.map(e=>`<div class="evl-it"><span class="tm">${e.tm?e.tm+(e.te?'–'+e.te:''):'종일'}</span><span class="t" style="min-width:0">${evHtml({allday:true,t:e.t,cat:evCat(e)})}<small style="color:var(--mute);font-size:11.5px">${(ECATS[evCat(e)]||ECATS.mine)[0]}${e.memo?` · ${esc(e.memo)}`:''}</small>${placeLink(e.p)}</span><button class="btn sm ghost" data-act="ev-edit" data-dk="${dk}" data-id="${e.id}">수정</button><button class="btn sm ghost" data-act="ev-del" data-dk="${dk}" data-id="${e.id}">삭제</button></div>`).join('')}</div>
+   <div class="evl">${evs.map(e=>`<div class="evl-it"><span class="tm">${e.ed&&e.ed>e._sdk?`${md(e._sdk)}~${md(e.ed)}`:e.tm?e.tm+(e.te?'–'+e.te:''):'종일'}</span><span class="t" style="min-width:0">${evHtml({allday:true,t:e.t,cat:evCat(e)})}<small style="color:var(--mute);font-size:11.5px">${(ECATS[evCat(e)]||ECATS.mine)[0]}${e.memo?` · ${esc(e.memo)}`:''}</small>${placeLink(e.p)}</span><button class="btn sm ghost" data-act="ev-edit" data-dk="${e._sdk}" data-id="${e.id}">수정</button><button class="btn sm ghost" data-act="ev-del" data-dk="${e._sdk}" data-id="${e.id}">삭제</button></div>`).join('')}</div>
    <div class="row" style="margin-top:12px"><button class="btn primary" data-act="add-item" data-dk="${dk}">+ 이 날 일정 추가</button><span class="sp"></span><button class="btn" data-act="m-cancel">닫기</button></div>`,{});
 }
 
@@ -1667,7 +1714,7 @@ document.addEventListener('dblclick',e=>{const el=e.target.closest('textarea.mc'
 function catOpts(sel){return Object.entries(ECATS).map(([k,[n,c]])=>`<button class="opt ${k===sel?'on':''}" data-act="opt" data-v="${k}"><i style="background:${c}"></i>${esc(n)}</button>`).join('')+`<button class="opt addc" data-act="icat-new">+ 새 카테고리</button>`;}
 function itemModal(o){
   const dk=o.dk||TODAYK;let base;const nr=()=>({f:'w',n:1,days:[dowMon(parseD(dk))],mode:'date',end:'none',cnt:10});
-  if(o.kind==='ev'){const e=findEv(dk,o.id);if(!e)return;base={t:e.t,p:e.p||'',cat:evCat(e),tm:e.tm||'',te:e.te||'',memo:e.memo||'',adBar:isAllDay(e)&&!!e.tm,rep:false,r:nr(),until:'',cal:false};}
+  if(o.kind==='ev'){const e=findEv(dk,o.id);if(!e)return;base={ed:e.ed||'',t:e.t,p:e.p||'',cat:evCat(e),tm:e.tm||'',te:e.te||'',memo:e.memo||'',adBar:isAllDay(e)&&!!e.tm,rep:false,r:nr(),until:'',cal:false};}
   else if(o.kind==='blk'){const b=S.time.blocks.find(x=>x.id===o.id);if(!b)return;base={t:b.t,p:b.p||'',cat:catOf(b.c),tm:b.s,te:b.e,memo:b.memo||'',rep:b.r.f,r:Object.assign(nr(),JSON.parse(JSON.stringify(b.r))),until:b.until||'',cal:!!b.cal};}
   else base={t:'',p:'',cat:'mine',tm:o.tm||'',te:o.te||'',memo:'',rep:false,r:nr(),until:'',cal:false};
   if(!base.r.days||!base.r.days.length)base.r.days=[dowMon(parseD(dk))];
@@ -1678,6 +1725,7 @@ function itemModal(o){
    <label class="l">장소</label><div class="pl-row"><input class="f" id="iP" value="${esc(base.p)}" placeholder="예) 신촌역 3번 출구, 홍대 연습실" maxlength="80"><a class="btn map-btn ${base.p?'':'off'}" id="iPMap" href="${base.p?mapUrl(base.p):'#'}" target="_blank" rel="noopener" title="카카오맵에서 열기">🗺 카카오맵</a></div>
    <div style="margin-top:10px"><small class="desc">날짜</small>${dp('iD',dk)}</div>
    <label class="row allday-tg" id="iAllRow" ${base.rep?'hidden':''}><input type="checkbox" id="iAll" data-allday="iS,iE" ${allday&&!base.rep?'checked':''}> 종일 일정</label>
+   <div id="iEDrow" class="rep-line" style="margin-top:6px" ${allday&&!base.rep?'':'hidden'}><small class="desc" style="margin:0">끝나는 날</small><input class="f" type="date" id="iED" value="${base.ed||dk}"><small class="desc" style="margin:0">여러 날이면 바꿔 주세요</small></div>
    <div class="two tp-row" style="margin-top:8px" ${allday&&!base.rep?'hidden':''}><div><small class="desc">시작</small>${tp('iS',base.tm,'시작 시간','iE')}</div><div><small class="desc">끝</small>${tp('iE',base.te,'—')}</div></div>
    <label class="row" id="xADrow" style="margin-top:6px;font-size:13px;gap:8px;cursor:pointer;color:var(--sub)" ${allday||base.rep?'hidden':''}><input type="checkbox" id="iAD" ${base.adBar?'checked':''}> 시간은 주간 타임테이블에만 쓰고, 월간 캘린더에는 종일 막대로 보이기</label>
    <label class="l">반복</label><div class="optrow" data-group="irep">${REPS.map(([v,l])=>`<button class="opt ${(base.rep||'0')===v?'on':''}" data-act="opt" data-v="${v}">${v==='0'?'':'↻ '}${l}</button>`).join('')}</div>
@@ -1699,7 +1747,7 @@ function itemModal(o){
   {kind:o.kind,dk,id:o.id,lastWd:dowMon(parseD(dk)),
    repUI(){const f=(($('[data-group="irep"] .opt.on')||{}).dataset||{}).v||'0';const on=f!=='0';
      $('#iRep').hidden=!on;$('#iAllRow').hidden=on;const row=$('.modal .tp-row');const all=$('#iAll');
-     if(on){row.hidden=false;if(!parseTime($('#iS').value))tpSet($('#iS'),'09:00');}else row.hidden=all.checked;$('#xADrow').hidden=on||all.checked;
+     if(on){row.hidden=false;if(!parseTime($('#iS').value))tpSet($('#iS'),'09:00');}else row.hidden=all.checked;$('#xADrow').hidden=on||all.checked;if($('#iEDrow'))$('#iEDrow').hidden=on||!all.checked;
      if(!on)return;
      const nd=$('#iD').value||dk;const d=parseD(nd);const wd=dowMon(d);const dd=d.getDate();const dim=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
      if(wd!==this.lastWd){const ons=$$('[data-group="iday"] .opt.on');if(ons.length===1&&+ons[0].dataset.v===this.lastWd){ons[0].classList.remove('on');$(`[data-group="iday"] .opt[data-v="${wd}"]`).classList.add('on');}this.lastWd=wd;}
@@ -1726,7 +1774,8 @@ function itemModal(o){
      const r=this.rule(rep);
      if(rep==='w'&&!r.days.length)return err('반복할 요일을 골라 주세요.');
      const until=rep&&r.end==='until'?($('#iU').value||''):'';if(rep&&r.end==='until'&&!until)return err('반복이 끝나는 날짜를 골라 주세요.');if(until&&until<nd)return err('반복 끝나는 날이 시작 날짜보다 빨라요.');
-     return {t,p:$('#iP').value.trim(),nd,rep,r,all,tm,te,until,cal:$('#iCal').checked,memo:$('#iM').value.trim(),cat:(($('[data-group="icat"] .opt.on')||{}).dataset||{}).v||'mine',adBar:$('#iAD').checked};},
+     let ed=all?($('#iED').value||''):'';if(ed&&ed<nd)return err('끝나는 날이 시작 날짜보다 빨라요.');if(ed===nd)ed='';
+     return {ed,t,p:$('#iP').value.trim(),nd,rep,r,all,tm,te,until,cal:$('#iCal').checked,memo:$('#iM').value.trim(),cat:(($('[data-group="icat"] .opt.on')||{}).dataset||{}).v||'mine',adBar:$('#iAD').checked};},
    ok(){const v=this.collect();if(!v)return false;
      if(this.kind==='blk'){this.pendingVals=v;scopeAsk('save');return false;}
      if(this.kind==='ev'){const arr=S.time.events[this.dk]||[];S.time.events[this.dk]=arr.filter(x=>x.id!==this.id);if(!S.time.events[this.dk].length)delete S.time.events[this.dk];}
@@ -1737,7 +1786,7 @@ function itemModal(o){
 }
 function itemCreate(v,keepId){
   if(v.rep)S.time.blocks.push({id:uid(),r:v.r,s:v.tm,e:v.te,t:v.t,p:v.p||'',c:v.cat,cal:v.cal,memo:v.memo,from:v.from||v.nd,until:v.until||'',ex:[]});
-  else (S.time.events[v.nd]=S.time.events[v.nd]||[]).push({id:keepId||uid(),t:v.t,p:v.p||'',cat:v.cat,allday:v.all?true:(v.adBar||false),tm:v.tm,te:v.te,memo:v.memo});
+  else{const ev={id:keepId||uid(),t:v.t,p:v.p||'',cat:v.cat,allday:v.all?true:(v.adBar||false),tm:v.tm,te:v.te,memo:v.memo};if(v.all&&v.ed&&v.ed>v.nd)ev.ed=v.ed;(S.time.events[v.nd]=S.time.events[v.nd]||[]).push(ev);}
 }
 function scopeAsk(kind){
   const M0=MODAL;const d=parseD(M0.dk);const lbl=`${d.getMonth()+1}/${d.getDate()}(${WD[d.getDay()]})`;
@@ -1766,12 +1815,27 @@ function setupModal(){
     if(!m||!u){$('#cfgErr').textContent='링크를 알아보지 못했어요. 전체를 복사해서 붙여 넣어 주세요.';return false;}
     try{localStorage.setItem('pm-app-cfg',JSON.stringify({k:decodeURIComponent(m[1]),u:decodeURIComponent(u[1])}));}catch(e){}
     setTimeout(()=>location.reload(),50);return true;}});}
+function aiKeyModal(){
+  openModal(`<h3>AI 키 설정</h3><p class="desc">console.anthropic.com에서 만든 API 키(sk-ant-로 시작)를 붙여 넣어 주세요. 키는 주현님 구글 계정의 연결 코드 안에만 저장되고, 이 기기나 앱 코드에는 남지 않아요.</p>
+   <p class="desc" id="kStat">확인하는 중…</p><input class="f" id="akIn" type="password" autocomplete="off" placeholder="sk-ant-…"><p class="err" id="akErr"></p>
+   <div class="actions"><button class="btn" data-act="m-cancel">닫기</button><button class="btn primary" data-act="m-ok">저장</button></div>`,
+  {async ok(){const v=$('#akIn').value.trim();if(!/^sk-ant-/.test(v)){$('#akErr').textContent='sk-ant-로 시작하는 키를 넣어 주세요.';return false;}
+     const c=PWACFG();try{const r=await fetch(c.u,{method:'POST',body:JSON.stringify({k:c.k,setkey:v})}).then(r=>r.json());if(!r.ok)throw r;closeModal();toast('AI 키를 저장했어요. 이제 AI 비서를 쓸 수 있어요.');}catch(e){$('#akErr').textContent='저장하지 못했어요. '+((e&&e.err)==='auth'?'연결 정보를 확인해 주세요.':'연결 코드가 아직 새 버전이 아닐 수 있어요.');}
+     return false;}});
+  const c=PWACFG();if(c)fetch(c.u,{method:'POST',body:JSON.stringify({k:c.k,haskey:1})}).then(r=>r.json()).then(r=>{const el=$('#kStat');if(el)el.textContent=r.ok&&r.has?'✓ 키가 등록돼 있어요. 바꾸려면 새 키를 넣어 주세요.':'아직 등록된 키가 없어요.';}).catch(()=>{const el=$('#kStat');if(el)el.textContent='';});}
 function pwaMenu(){const c=PWACFG();
   openModal(`<h3>메뉴</h3><div class="mlist">
     <a class="mitem" href="${PM_URL}" target="_blank" rel="noopener">페이스메이커 전체 열기 (만다라트 · 회고 등)<span>›</span></a>
-    <button class="mitem" data-act="sync-now">지금 동기화하기<span>↻</span></button><button class="mitem" data-act="setup-again">연결 다시 설정하기<span>›</span></button></div>
+    <button class="mitem" data-act="sync-now">지금 동기화하기<span>↻</span></button><button class="mitem" data-act="ai-key">AI 키 설정<span>›</span></button><button class="mitem" data-act="setup-again">연결 다시 설정하기<span>›</span></button></div>
     <p class="desc" style="margin-top:14px">${c?(SHEET_OK?'구글 시트와 연결돼 있어요. PC 페이스메이커와 같은 일정을 써요.':'구글 시트에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.'):'아직 연결 설정이 안 됐어요.'}</p>
     <div class="actions"><button class="btn" data-act="m-cancel">닫기</button></div>`,{});}
+function weekPicker(){const cur=UI.ttw||dKey(mondayOf(TODAY));const cy=+addDays(cur,3).slice(0,4);const years=[...new Set(CAL_MONTHS.map(k=>+k.slice(0,4)))];
+  openModal(`<h3>이동할 주 고르기</h3><div id="mpBody"></div><div class="actions"><button class="btn ghost left" data-act="wp-go" data-w="${dKey(mondayOf(TODAY))}">이번 주로</button><button class="btn" data-act="m-cancel">닫기</button></div>`,
+   {y:cy,m:addDays(cur,3).slice(0,7),draw(){const mk=this.m;const first=dKey(mondayOf(parseD(mk+'-01')));const ws=[];let w=first;while(w.slice(0,7)<=mk||addDays(w,6).slice(0,7)===mk){if(addDays(w,6)>=mk+'-01')ws.push(w);w=addDays(w,7);if(ws.length>6)break;}
+     $('#mpBody').innerHTML=`<div class="mp-years">${years.map(y=>`<button class="opt ${y===this.y?'on':''}" data-act="wp-y" data-y="${y}">${y}년</button>`).join('')}</div>
+     <div class="mp-grid">${Array.from({length:12},(_,i)=>{const k=`${this.y}-${pad(i+1)}`;return `<button class="mp-mo ${k===this.m?'on':''} ${k===TODAYM?'now':''}" data-act="wp-m" data-m="${k}">${i+1}월</button>`;}).join('')}</div>
+     ${this.m.slice(0,4)==String(this.y)?`<div class="wp-list">${ws.map(w=>{const z=addDays(w,6);return `<button class="wp-w ${w===cur?'on':''} ${w===dKey(mondayOf(TODAY))?'now':''}" data-act="wp-go" data-w="${w}">${md(w)} – ${md(z)}</button>`;}).join('')}</div>`:''}`;}});
+  MODAL.draw();}
 function monthPicker(){const cy=+UI.cmonth.slice(0,4);const years=[...new Set(CAL_MONTHS.map(k=>+k.slice(0,4)))];
   openModal(`<h3>이동할 달 고르기</h3><div id="mpBody"></div><div class="actions"><button class="btn ghost left" data-act="mp-m" data-m="${TODAYM}">오늘로</button><button class="btn" data-act="m-cancel">닫기</button></div>`,
    {y:cy,draw(){$('#mpBody').innerHTML=`<div class="mp-years">${years.map(y=>`<button class="opt ${y===this.y?'on':''}" data-act="mp-y" data-y="${y}">${y}년</button>`).join('')}</div>
@@ -1801,7 +1865,7 @@ function taskModal(o){
    ${isNew?`<label class="l">할 일 목록에서 고르기</label><div id="kList" class="chips"></div>`:''}
    <label class="l">${isNew?'또는 새로 적기':'할 일'}</label><input class="f" id="kT" value="${esc(t?t.t:(o.t||''))}" placeholder="예) 독백 대사 외우기, 프로필 메일 5곳 보내기" maxlength="80">
    <div style="margin-top:10px"><small class="desc">날짜</small>${dp('kD',dk)}</div>
-   <div class="two tp-row" style="margin-top:8px"><div><small class="desc">시작</small>${tp('kS',tm,'시작 시간','kE')}</div><div><small class="desc">끝</small>${tp('kE',te,'—')}</div></div>
+   <div class="two tp-row" style="margin-top:8px"><div><small class="desc">시작 (비우면 오전 7시)</small>${tp('kS',tm,'07:00','kE')}</div><div><small class="desc">끝</small>${tp('kE',te,'—')}</div></div>
    ${t?`<label class="row" style="margin-top:12px;gap:8px;cursor:pointer;font-size:14px"><input type="checkbox" id="kDone" ${t.done?'checked':''}> 완료했어요</label>`:''}
    <p class="err" id="kErr"></p>
    <div class="actions">${t?`<button class="btn danger left" data-act="k-del">삭제</button>${t.tm?'<button class="btn ghost" data-act="k-unsched" title="할 일 목록에는 남겨 두고 시간표에서만 빼요">시간표에서 빼기</button>':''}`:''}<button class="btn" data-act="m-cancel">취소</button><button class="btn primary" data-act="m-ok">${isNew?'추가':'저장'}</button></div>`,
@@ -1812,7 +1876,7 @@ function taskModal(o){
    ok(){const title=$('#kT').value.trim();const nd=$('#kD').value||this.dk;let s1=nt('kS'),e1=nt('kE');
      const err=m=>{$('#kErr').textContent=m;return false;};
      if(!title&&!this.pick)return err('할 일을 고르거나 적어 주세요.');
-     if(!s1)return err('시작 시간을 정해 주세요.');if(!e1)e1=fmtMin(Math.min(23*60+59,toMin(s1)+60));if(toMin(e1)<=toMin(s1))return err('끝 시간이 시작보다 늦어야 해요.');
+     if(!s1){s1='07:00';e1='08:00';}if(!e1)e1=fmtMin(Math.min(23*60+59,toMin(s1)+60));if(toMin(e1)<=toMin(s1))return err('끝 시간이 시작보다 늦어야 해요.');
      let task;
      if(this.id||this.pick){const src=this.id?this.dk:nd;const d0=TD(src,true);task=d0.tasks.find(x=>x.id===(this.id||this.pick));if(!task)return err('할 일을 찾지 못했어요.');
        if(src!==nd){d0.tasks=d0.tasks.filter(x=>x!==task);if(task.pri){task.pri=0;}TD(nd,true).tasks.push(task);tdDirty(src);}}
@@ -1825,7 +1889,7 @@ function taskModal(o){
 let AIIMG=[];
 function aiCtx(){
   const lo=addDays(TODAYK,-45),hi=addDays(TODAYK,150);const ev=[];
-  Object.keys(S.time.events).sort().forEach(dk=>{if(dk<lo||dk>hi)return;S.time.events[dk].forEach(e=>ev.push(`${dk} | id=${e.id} | ${e.tm?e.tm+(e.te?'-'+e.te:''):'종일'} | ${e.t}${e.p?' @'+e.p:''} | ${evCat(e)}`));});
+  Object.keys(S.time.events).sort().forEach(dk=>{if(dk<lo||dk>hi)return;S.time.events[dk].forEach(e=>ev.push(`${dk}${e.ed?'~'+e.ed:''} | id=${e.id} | ${e.tm?e.tm+(e.te?'-'+e.te:''):'종일'} | ${e.t}${e.p?' @'+e.p:''} | ${evCat(e)}`));});
   const bl=S.time.blocks.map(b=>`id=${b.id} | ${ruleText(b.r,b.until)} ${b.s}-${b.e} | ${b.t} | ${catOf(b.c)}`);
   const td=[];for(let i=-1;i<8;i++){const dk=addDays(TODAYK,i);const d=TD(dk);if(d)d.tasks.forEach(t=>td.push(`${dk} | ${t.done?'완료':'미완료'} | ${t.tm?t.tm+'-'+(t.te||''):'시간없음'} | ${t.t}`));}
   return {ev:ev.slice(-400),bl,td};}
@@ -1848,14 +1912,14 @@ ${linkText?`\n[링크에서 가져온 내용]\n${linkText.slice(0,12000)}`:''}
 - '다음 주 화요일', '모레' 같은 말은 오늘 날짜 기준으로 정확한 날짜(YYYY-MM-DD)로 바꿔.
 - 이미지에 일정이 여러 개 보이면 모두 뽑아. 이미 같은 날짜·같은 제목의 일정이 있으면 다시 추가하지 마.
 - 시간이 없으면 종일 일정(allday:true, start:"", end:"")으로. 끝 시간을 모르면 end는 "".
-- 여러 날에 걸친 종일 일정은 날짜마다 add_event를 하나씩 만들어.
+- 여러 날에 걸친 종일 일정은 add_event 하나로 만들고 end_date(마지막 날)를 넣어.
 - 카테고리는 위 목록의 key 중 가장 알맞은 것으로. 모르면 "mine".
 - '할 일', '해야 할 것'은 add_task로. 일정 수정·삭제 요청은 기존 일정의 id를 써서 update_event/delete_event로.
 - 매주·매달처럼 반복이면 add_repeat로.
 - 지어내지 마. 확실하지 않으면 actions는 비우고 reply에 무엇이 필요한지 짧게 물어봐.
 답 형식(JSON만):
 {"reply":"한두 문장 한국어 요약","actions":[
- {"op":"add_event","date":"YYYY-MM-DD","title":"","allday":false,"start":"HH:MM","end":"HH:MM","place":"","memo":"","cat":"key"},
+ {"op":"add_event","date":"YYYY-MM-DD","end_date":"","title":"","allday":false,"start":"HH:MM","end":"HH:MM","place":"","memo":"","cat":"key"},
  {"op":"add_task","date":"YYYY-MM-DD","title":"","start":"","end":""},
  {"op":"add_repeat","title":"","freq":"d|w|m|y","interval":1,"weekdays":[0],"from":"YYYY-MM-DD","until":"","start":"HH:MM","end":"HH:MM","place":"","cat":"key"},
  {"op":"update_event","date":"YYYY-MM-DD","id":"","changes":{"title":"","date":"","start":"","end":"","allday":false,"place":"","memo":"","cat":""}},
@@ -1877,11 +1941,11 @@ function aiModal(){AIIMG=[];
    <div class="ai-tools"><label class="btn sm"><input type="file" id="aiF" accept="image/*" multiple hidden>🖼 캡처 올리기</label>${PWA?'<input class="f" id="aiU" placeholder="링크 붙여넣기 (선택)" inputmode="url">':'<span class="desc" style="margin:0">링크는 여기서 열 수 없어요. 내용을 복사해 붙여 넣어 주세요. (Ctrl+V로 캡처 붙여넣기도 돼요)</span>'}</div>
    <div id="aiThumbs" class="ai-thumbs"></div>
    <div id="aiOut"></div><p class="err" id="aiErr"></p>
-   <div class="actions" id="aiAct"><button class="btn" data-act="m-cancel">닫기</button><button class="btn primary" data-act="ai-run">보내기</button></div>`,{acts:null});
+   <div class="actions" id="aiAct">${PWA?'<button class="btn ghost left" data-act="ai-key">AI 키 설정</button>':''}<button class="btn" data-act="m-cancel">닫기</button><button class="btn primary" data-act="ai-run">보내기</button></div>`,{acts:null});
   setTimeout(()=>{const x=$('#aiT');x&&x.focus();},40);}
 function aiThumbs(){$('#aiThumbs').innerHTML=AIIMG.map((b,i)=>`<span class="ai-th"><img src="${URL.createObjectURL(b)}"><button data-act="ai-rm" data-i="${i}">×</button></span>`).join('');}
 const AIDESC=a=>{const d=a.date?`${+a.date.slice(5,7)}/${+a.date.slice(8)}(${WD[parseD(a.date).getDay()]}) `:'';
-  if(a.op==='add_event')return `<b>일정 추가</b> ${d}${a.allday||!a.start?'종일':a.start+(a.end?'–'+a.end:'')} · ${esc(a.title)}${a.place?' · 📍'+esc(a.place):''} <span class="st-tag">${esc((ECATS[a.cat]||ECATS.mine)[0])}</span>`;
+  if(a.op==='add_event')return `<b>일정 추가</b> ${d}${a.end_date&&a.end_date>a.date?'~ '+md(a.end_date)+' ':''}${a.allday||!a.start?'종일':a.start+(a.end?'–'+a.end:'')} · ${esc(a.title)}${a.place?' · 📍'+esc(a.place):''} <span class="st-tag">${esc((ECATS[a.cat]||ECATS.mine)[0])}</span>`;
   if(a.op==='add_task')return `<b>할 일 추가</b> ${d}${a.start?a.start+(a.end?'–'+a.end:'')+' · ':''}${esc(a.title)}`;
   if(a.op==='add_repeat')return `<b>반복 일정 추가</b> ${esc(a.title)} · ${a.freq==='w'?'매주 '+(a.weekdays||[]).map(i=>WDM[i]).join('·'):a.freq==='m'?'매달':a.freq==='y'?'매년':'매일'} ${a.start||''}${a.end?'–'+a.end:''}${a.from?' · '+a.from+'부터':''}`;
   const e=a.date&&findEv(a.date,a.id);
@@ -1898,12 +1962,12 @@ async function aiRun(){
     $('#aiOut').innerHTML=`<div class="ai-reply">${esc(res&&res.reply||'')}</div>${acts.length?`<div class="ai-list">${acts.map((a,i)=>`<label class="ai-it"><input type="checkbox" data-ai="${i}" checked><span>${AIDESC(a)}</span></label>`).join('')}</div>`:''}`;
     $('#aiAct').innerHTML=`<button class="btn" data-act="m-cancel">닫기</button><button class="btn" data-act="ai-again">다시 말하기</button>${acts.length?'<button class="btn primary" data-act="ai-apply">반영하기</button>':''}`;
   }catch(e){console.warn(e);$('#aiOut').innerHTML='';const b=$('#aiAct [data-act="ai-run"]');if(b)b.disabled=false;
-    $('#aiErr').textContent=e&&e.code==='nosample'?'AI를 부를 수 없는 화면이에요. 클로드 안에서 연 페이스메이커에서 써 주세요.':e&&e.code==='noai'?'폰 앱의 AI 연결은 아직 준비 중이에요. 지금은 PC 페이스메이커에서 써 주세요.':e&&e.code==='not_granted'?'AI 사용을 허용해야 쓸 수 있어요.':e&&e.code==='rate_limited'?'잠깐 너무 많이 썼어요. 조금 뒤에 다시 해 주세요.':e&&e.code==='fetch'?'링크를 열지 못했어요. 내용을 복사해 붙여 넣어 주세요.':'처리하지 못했어요. 다시 시도해 주세요.'+(e&&e.message?' ('+e.message+')':'');}
+    $('#aiErr').textContent=e&&e.code==='nosample'?'AI를 부를 수 없는 화면이에요. 클로드 안에서 연 페이스메이커에서 써 주세요.':e&&e.code==='noai'?'AI 연결이 아직 준비되지 않았어요.':e&&e.code==='nokey'?'AI 키를 먼저 등록해 주세요. 아래 ‘AI 키 설정’을 눌러요.':e&&e.code==='badkey'?'AI 키가 맞지 않아요. ‘AI 키 설정’에서 다시 넣어 주세요.':e&&e.code==='billing'?'API 크레딧이 없거나 결제 한도에 닿았어요. console.anthropic.com에서 확인해 주세요.':e&&e.code==='not_granted'?'AI 사용을 허용해야 쓸 수 있어요.':e&&e.code==='rate_limited'?'잠깐 너무 많이 썼어요. 조금 뒤에 다시 해 주세요.':e&&e.code==='fetch'?'링크를 열지 못했어요. 내용을 복사해 붙여 넣어 주세요.':'처리하지 못했어요. 다시 시도해 주세요.'+(e&&e.message?' ('+e.message+')':'');}
 }
 function aiApply(){
   const acts=MODAL.acts||[];let n=0,nt0=0;const T=S.time;const okT=v=>/^\d{1,2}:\d{2}$/.test(v||'')?v.padStart(5,'0'):'';const okD=v=>/^\d{4}-\d{2}-\d{2}$/.test(v||'');const okC=k=>ECATS[k]?k:'mine';
   $$('[data-ai]').forEach(cb=>{if(!cb.checked)return;const a=acts[+cb.dataset.ai];if(!a)return;
-    if(a.op==='add_event'&&okD(a.date)&&a.title){const tm=a.allday?'':okT(a.start),te=a.allday?'':okT(a.end);(T.events[a.date]=T.events[a.date]||[]).push({id:uid(),t:String(a.title).slice(0,80),cat:okC(a.cat),allday:!tm,tm,te:tm&&te&&te>tm?te:'',memo:String(a.memo||'').slice(0,300),p:String(a.place||'').slice(0,80)});n++;}
+    if(a.op==='add_event'&&okD(a.date)&&a.title){const tm=a.allday?'':okT(a.start),te=a.allday?'':okT(a.end);const ne={id:uid(),t:String(a.title).slice(0,80),cat:okC(a.cat),allday:!tm,tm,te:tm&&te&&te>tm?te:'',memo:String(a.memo||'').slice(0,300),p:String(a.place||'').slice(0,80)};if(!tm&&okD(a.end_date)&&a.end_date>a.date)ne.ed=a.end_date;(T.events[a.date]=T.events[a.date]||[]).push(ne);n++;}
     else if(a.op==='add_task'&&okD(a.date)&&a.title){const t={id:uid(),t:String(a.title).slice(0,80),done:false,pri:0,sub:[],open:false};const tm=okT(a.start);if(tm){t.tm=tm;const te=okT(a.end);t.te=te&&te>tm?te:fmtMin(Math.min(1439,toMin(tm)+60));}TD(a.date,true).tasks.push(t);tdDirty(a.date);nt0++;}
     else if(a.op==='add_repeat'&&a.title&&okT(a.start)){const f=['d','w','m','y'].includes(a.freq)?a.freq:'w';const from=okD(a.from)?a.from:TODAYK;const d=parseD(from);const r={f,n:Math.max(1,+a.interval||1),end:okD(a.until)?'until':'none'};
       if(f==='w')r.days=(Array.isArray(a.weekdays)&&a.weekdays.length?a.weekdays:[dowMon(d)]).map(Number).filter(x=>x>=0&&x<7);if(f==='m'||f==='y'){r.mode='date';r.md=d.getDate();r.nth=Math.ceil(d.getDate()/7);r.wd=dowMon(d);}if(f==='y')r.mon=d.getMonth();
@@ -1917,7 +1981,7 @@ function aiApply(){
   });
   if(n)markDirty('time');closeModal();render(true);toast(n||nt0?`AI 비서가 ${n?`일정 ${n}건`:''}${n&&nt0?', ':''}${nt0?`할 일 ${nt0}건`:''}을 반영했어요.`:'반영할 항목이 없었어요.');}
 function findEv(dk,id){return (S.time.events[dk]||[]).find(e=>e.id===id);}
-function moveEv(dk,id,ndk){if(dk===ndk)return findEv(dk,id);const arr=S.time.events[dk]||[];const i=arr.findIndex(e=>e.id===id);if(i<0)return null;const [e]=arr.splice(i,1);if(!arr.length)delete S.time.events[dk];(S.time.events[ndk]=S.time.events[ndk]||[]).push(e);return e;}
+function moveEv(dk,id,ndk){if(dk===ndk)return findEv(dk,id);const arr=S.time.events[dk]||[];const i=arr.findIndex(e=>e.id===id);if(i<0)return null;const [e]=arr.splice(i,1);if(!arr.length)delete S.time.events[dk];if(e.ed)e.ed=addDays(e.ed,diffDays(dk,ndk));(S.time.events[ndk]=S.time.events[ndk]||[]).push(e);return e;}
 function eventModal(dk,id){
   const e=findEv(dk,id);if(!e)return;const cat=evCat(e);const ad=isAllDay(e);
   openModal(`<h3>일정 수정</h3>
@@ -2097,6 +2161,7 @@ const ACT={
  scope:t=>scopeApply(t.dataset.v),
  'cat-manage':()=>catModal(),
  'ai-open':()=>{closeModal();aiModal();},
+ 'ai-key':()=>{closeModal();aiKeyModal();},
  'ai-run':()=>aiRun(),
  'ai-apply':()=>aiApply(),
  'ai-again':()=>{MODAL.acts=null;$('#aiOut').innerHTML='';$('#aiAct').innerHTML='<button class="btn" data-act="m-cancel">닫기</button><button class="btn primary" data-act="ai-run">보내기</button>';$('#aiT').focus();},
@@ -2110,6 +2175,10 @@ const ACT={
  'k-unsched':()=>{const d=TD(MODAL.dk,true);const x=d.tasks.find(z=>z.id===MODAL.id);if(x){delete x.tm;delete x.te;tdDirty(MODAL.dk);}closeModal();render(true);toast('시간표에서 뺐어요. 할 일 목록에는 남아 있어요.');},
  'k-del':()=>{const d=TD(MODAL.dk,true);d.tasks=d.tasks.filter(z=>z.id!==MODAL.id);let i=1;d.tasks.filter(z=>z.pri).sort((a,b)=>a.pri-b.pri).forEach(z=>z.pri=i++);tdDirty(MODAL.dk);closeModal();render(true);toast('할 일을 지웠어요.');},
  mpick:()=>monthPicker(),
+ wpick:()=>weekPicker(),
+ 'wp-y':t=>{MODAL.y=+t.dataset.y;MODAL.m=`${MODAL.y}-${MODAL.m.slice(5)}`;MODAL.draw();},
+ 'wp-m':t=>{MODAL.m=t.dataset.m;MODAL.draw();},
+ 'wp-go':t=>{UI.ttw=t.dataset.w;saveUI();closeModal();render();},
  'mp-y':t=>{MODAL.y=+t.dataset.y;MODAL.draw();},
  'mp-m':t=>{UI.cmonth=t.dataset.m;saveUI();closeModal();render();},
  'setup-again':()=>{closeModal();setupModal();},
@@ -2183,7 +2252,7 @@ const ACT={
  rchip:t=>{const ta=$('#rsn');ta.value=ta.value.trim()?ta.value.trim()+' / '+t.textContent:t.textContent;ta.focus();},
  opt:t=>{const g=t.parentElement;if(g.dataset.multi){t.classList.toggle('on');}else{$$('.opt',g).forEach(x=>x.classList.remove('on'));t.classList.add('on');}if(['irep','imode','iend','iday'].includes(g.dataset.group)&&MODAL&&MODAL.repUI)MODAL.repUI();
   if(g.dataset.group==='rkind')$$('.rk').forEach(x=>{x.hidden=x.dataset.k!==t.dataset.v;});},
- 'm-ok':()=>{if(!MODAL)return;const r=MODAL.ok?MODAL.ok():true;if(r!==false)closeModal();},
+ 'm-ok':()=>{if(!MODAL)return;const r=MODAL.ok?MODAL.ok():true;if(r&&typeof r.then==='function')return;if(r!==false)closeModal();},
  'm-cancel':()=>{if(MODAL&&MODAL.cancel)MODAL.cancel();closeModal();},
  'modal-bg':()=>{if(MODAL&&MODAL.sticky)return;if(MODAL&&MODAL.cancel)MODAL.cancel();closeModal();},
  'h-del':t=>MODAL&&MODAL.del&&MODAL.del(t),
@@ -2241,6 +2310,7 @@ document.addEventListener('change',e=>{
   if(el.id==='kD'&&MODAL&&MODAL.kList)MODAL.kList();
   if(el.id==='aiF'){const fs=[...el.files].slice(0,4);Promise.all(fs.map(shrinkImg)).then(bs=>{AIIMG=AIIMG.concat(bs).slice(0,4);aiThumbs();});el.value='';return;}
   if(el.classList&&el.classList.contains('cm-cus')&&MODAL&&MODAL.list){MODAL.sync();const c=MODAL.list.find(z=>z.k===el.dataset.k);if(c){c.c=el.value;delete c.f;delete c.x;}MODAL.draw();return;}
+  if(el.id==='iAll'&&$('#iEDrow'))$('#iEDrow').hidden=!el.checked;
   if(el.dataset&&el.dataset.allday){const box=el.closest('.modal');const row=box&&box.querySelector('.tp-row');if(row)row.hidden=el.checked;const ad=$('#xADrow');if(ad)ad.hidden=el.checked;
     if(!el.checked){const [a,b]=el.dataset.allday.split(',');const s0=$('#'+a);if(s0&&!parseTime(s0.value))tpSet(s0,'09:00');}tpClose();return;}
   if(el.classList&&el.classList.contains('tp-in')){
@@ -2267,7 +2337,7 @@ load();
 })();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{});
-(function(){const B="cf768e9736";
+(function(){const B="2a2f4f561d";
 async function chk(){try{const v=await fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json());
 if(!v||v.b===B||sessionStorage.getItem("pm-upd")===v.b)return;sessionStorage.setItem("pm-upd",v.b);
 const r=await fetch("index.html",{cache:"reload"});if(!r.ok)return;
