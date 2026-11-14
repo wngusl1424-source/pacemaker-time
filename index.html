@@ -566,6 +566,9 @@ a.plc{font-size:12px;color:var(--blue);text-decoration:none;white-space:nowrap;m
   .toast{bottom:calc(140px + env(safe-area-inset-bottom))!important}
   .fab{right:16px;bottom:calc(84px + env(safe-area-inset-bottom))}
   .ai-btn{padding:7px 11px;font-size:13px}.toolbar .ai-btn .ai-l{display:inline}
+  .toolbar.ttbar{flex-wrap:nowrap;gap:6px}.ttbar .weeknav{gap:2px;flex:none}.ttbar .weeknav .iconbtn{width:30px;height:34px}.ttbar .weeknav .ttl{font-size:14px;min-width:0;padding:0 2px}.ttbar .weeknav .ttl small{font-size:10px}
+  .ttbar .btn{padding:7px 10px;font-size:13px;white-space:nowrap}.ttbar .ai-btn{padding:7px 9px}.ttbar .ai-l2{display:none}.ttbar .ttw-now{display:none}
+  .lbl-l{display:none}
   .fab-today{bottom:calc(92px + env(safe-area-inset-bottom));height:38px;padding:0 18px;font-size:13px}
   .tt .tt-k{padding:2px 2px 2px 3px;font-size:10px;border-radius:4px;border-width:1.2px}.tt .tt-k b{font-size:10px;gap:2px;word-break:break-all}.tt .tt-k small{display:none}.tk-ck{width:10px;height:10px}
   .td-time{font-size:11px;padding:2px 4px}
@@ -1320,7 +1323,7 @@ function vWeekTT(){
   const actH=(tot.actor||0)/60,restH=(tot.rest||0)/60;
   const a=parseD(days[0]),z=parseD(days[6]);
   return `
-  <div class="toolbar"><div class="weeknav"><button class="iconbtn" data-act="ttw" data-w="${TTWEEKS[wi-1]||''}" ${wi<=0?'disabled':''}>‹</button><div class="ttl">${a.getMonth()+1}/${a.getDate()} – ${z.getMonth()+1}/${z.getDate()}<small>${a.getFullYear()}년</small></div><button class="iconbtn" data-act="ttw" data-w="${TTWEEKS[wi+1]||''}" ${wi>=TTWEEKS.length-1?'disabled':''}>›</button></div>${wk!==cur&&TTWEEKS.includes(cur)?`<button class="btn sm ghost" data-act="ttw" data-w="${cur}">이번 주</button>`:''}<span class="sp"></span><button class="btn ai-btn" data-act="ai-open" title="AI 비서: 캡처·글로 일정 추가"><span class="spark">✦</span><span class="ai-l">AI 비서</span></button><button class="btn" data-act="add-task" data-dk="${days.includes(TODAYK)?TODAYK:days[0]}">+ 할 일 블럭</button><button class="btn primary" data-act="add-item" data-dk="${days.includes(TODAYK)?TODAYK:days[0]}">+ 일정 추가</button></div>
+  <div class="toolbar ttbar"><div class="weeknav"><button class="iconbtn" data-act="ttw" data-w="${TTWEEKS[wi-1]||''}" ${wi<=0?'disabled':''}>‹</button><div class="ttl">${a.getMonth()+1}/${a.getDate()} – ${z.getMonth()+1}/${z.getDate()}<small>${a.getFullYear()}년</small></div><button class="iconbtn" data-act="ttw" data-w="${TTWEEKS[wi+1]||''}" ${wi>=TTWEEKS.length-1?'disabled':''}>›</button></div>${wk!==cur&&TTWEEKS.includes(cur)?`<button class="btn sm ghost ttw-now" data-act="ttw" data-w="${cur}">이번 주</button>`:''}<span class="sp"></span><button class="btn ai-btn" data-act="ai-open" title="AI 비서: 캡처·글로 일정 추가"><span class="spark">✦</span><span class="ai-l">AI<span class="ai-l2"> 비서</span></span></button><button class="btn" data-act="add-task" data-dk="${days.includes(TODAYK)?TODAYK:days[0]}">+ 할 일<span class="lbl-l"> 블럭</span></button><button class="btn primary" data-act="add-item" data-dk="${days.includes(TODAYK)?TODAYK:days[0]}">+ 일정<span class="lbl-l"> 추가</span></button></div>
   <button class="fab-today" data-act="ttw" data-w="${cur}">오늘</button>
   <div class="row lgrow" style="margin-bottom:10px">${Object.entries(ECATS).map(([k,[n,c]])=>`<span class="lg-c"><i style="background:${c}"></i>${n}${tot[k]?` <b style="color:var(--ink)">${(tot[k]/60).toFixed(tot[k]%60?1:0)}h</b>`:''}</span>`).join('')}<button class="btn sm ghost" data-act="cat-manage">카테고리 편집</button></div>
   <div class="card" style="padding:14px"><div class="tt-wrap"><div class="tt">
@@ -1401,7 +1404,7 @@ function vCal(){
   const i=CAL_MONTHS.indexOf(mk);
   const up=Object.keys(S.time.events).filter(k=>k>=TODAYK).sort().flatMap(k=>calItems(k).filter((_,j)=>true).filter(x=>x.k[0]!=='0').map(x=>({k,x}))).slice(0,8);
   return `
-  <div class="toolbar"><div class="weeknav"><button class="iconbtn" data-act="cmonth" data-m="${CAL_MONTHS[i-1]||''}" ${i<=0?'disabled':''}>‹</button><button class="ttl ttl-btn" data-act="mpick" title="연도·월 고르기">${y}년 ${m}월 <span class="caret">▾</span></button><button class="iconbtn" data-act="cmonth" data-m="${CAL_MONTHS[i+1]||''}" ${i>=CAL_MONTHS.length-1?'disabled':''}>›</button></div><span class="sp"></span><button class="btn ai-btn" data-act="ai-open" title="AI 비서: 캡처·글로 일정 추가"><span class="spark">✦</span><span class="ai-l">AI 비서</span></button></div>
+  <div class="toolbar"><div class="weeknav"><button class="iconbtn" data-act="cmonth" data-m="${CAL_MONTHS[i-1]||''}" ${i<=0?'disabled':''}>‹</button><button class="ttl ttl-btn" data-act="mpick" title="연도·월 고르기">${y}년 ${m}월 <span class="caret">▾</span></button><button class="iconbtn" data-act="cmonth" data-m="${CAL_MONTHS[i+1]||''}" ${i>=CAL_MONTHS.length-1?'disabled':''}>›</button></div><span class="sp"></span><button class="btn ai-btn" data-act="ai-open" title="AI 비서: 캡처·글로 일정 추가"><span class="spark">✦</span><span class="ai-l">AI<span class="ai-l2"> 비서</span></span></button></div>
   <div class="row lgrow" style="margin-bottom:10px">${Object.entries(ECATS).map(([k,[n,c]])=>`<span class="lg-c"><i style="background:${c}"></i>${n}</span>`).join('')}<span class="lg-c"><i style="background:#fff;box-shadow:inset 0 0 0 1px var(--blue-200)"></i>반복 알림</span></div>
   <div class="cal" id="calGrid">${cells}</div>
   <div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn sm ghost" data-act="cat-manage">카테고리 편집</button></div>
@@ -2264,7 +2267,7 @@ load();
 })();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{});
-(function(){const B="3a66044f9c";
+(function(){const B="cf768e9736";
 async function chk(){try{const v=await fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json());
 if(!v||v.b===B||sessionStorage.getItem("pm-upd")===v.b)return;sessionStorage.setItem("pm-upd",v.b);
 const r=await fetch("index.html",{cache:"reload"});if(!r.ok)return;
