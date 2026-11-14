@@ -1,17 +1,18 @@
 // 앱 화면 파일만 저장해 두고 바로 띄워요. 일정 데이터는 여기 저장하지 않아요.
-const V = 'pm-time-v2';
+const V = 'pm-time-v3';
 const ASSETS = ['./', 'index.html', 'manifest.webmanifest', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(V).then(c => c.addAll(ASSETS.map(u => new Request(u, { cache: 'reload' })))));
   self.skipWaiting();
 });
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith('pm-time-') && k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
 async function tell(msg) { (await self.clients.matchAll({ type: 'window' })).forEach(c => c.postMessage(msg)); }
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
+  if (new URL(req.url).pathname.includes('/audition/')) return; // 오디션 노트는 자기 서비스워커가 맡아요
   if (req.cache === 'reload' || req.cache === 'no-store') return;
   const nav = req.mode === 'navigate';
   const key = nav ? 'index.html' : req;
