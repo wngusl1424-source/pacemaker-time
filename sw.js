@@ -1,6 +1,6 @@
 // 앱 화면 파일만 저장해 두고 바로 띄워요. 일정 데이터는 여기 저장하지 않아요.
-const V = 'pm-time-v3';
-const ASSETS = ['./', 'index.html', 'manifest.webmanifest', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
+const V = 'pm-time-v4';
+const ASSETS = ['./', 'index.html', 'manifest.webmanifest', 'ic2-180.png', 'ic2-192.png', 'ic2-512.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(V).then(c => c.addAll(ASSETS.map(u => new Request(u, { cache: 'reload' })))));
   self.skipWaiting();

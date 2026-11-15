@@ -9,8 +9,8 @@
 <meta name="apple-mobile-web-app-title" content="시간표">
 <meta name="theme-color" content="#f5f6f8">
 <meta name="referrer" content="no-referrer">
-<link rel="apple-touch-icon" href="icon-180.png">
-<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="ic2-180.png">
+<link rel="icon" href="ic2-192.png">
 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -374,6 +374,7 @@ table.trk{border-collapse:separate;border-spacing:0;font-size:12px}
 .td-wk{font-size:10.5px;font-weight:700;color:#c27a00;background:#fff2dc;border-radius:999px;padding:1px 6px;flex:none}
 .td-addrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.td-addrow .td-add{flex:1;min-width:200px}
 .dur-seg{display:inline-flex;gap:6px;flex-wrap:wrap;margin-top:4px}.dur-seg button{border:1px solid var(--line2);background:#fff;border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer;color:var(--sub)}.dur-seg button.on{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600}.dur-seg.sm{margin:0}.dur-seg.sm button{padding:4px 9px;font-size:12px}
+.inst-btn{margin-right:8px;white-space:nowrap}.inst-ol{margin:8px 0 0 18px;padding:0;line-height:1.7;font-size:14.5px}.inst-ol li{margin-bottom:6px}
 .scope-btns{display:flex;flex-wrap:wrap;gap:6px;width:100%;justify-content:flex-end}.scope-btns .btn small{opacity:.7;font-weight:400;margin-left:3px}.wk-it .td-in{flex:1;min-width:0;width:0}.wk-it .td-ic{flex:none}
 .wk-n{width:22px;height:22px;border-radius:50%;background:#eef1f6;color:var(--sub);font-size:12px;font-weight:700;display:grid;place-items:center;flex:none}.wk-n.hi{background:#fff2dc;color:#c27a00}
 .tdg{cursor:grab;color:var(--mute);font-size:13px;letter-spacing:-3px;padding:4px 6px 4px 0;touch-action:none;user-select:none;-webkit-user-select:none;flex:none}
@@ -1003,6 +1004,11 @@ const freqOptions=sel=>[1,2,3,4,5,6,7].map(n=>`<option value="${n}" ${n===sel?'s
 /* ---------- render ---------- */
 const PWA=!!window.PM_PWA;
 window.addEventListener('hashchange',()=>{if(PWA&&/[#&]k=/.test(location.hash))location.reload();});
+let INST_EVT=null;const STANDALONE=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+function instBtn(){if(!PWA||STANDALONE()||$('#instBtn'))return;const b=document.createElement('button');b.id='instBtn';b.className='btn sm inst-btn';b.dataset.act='pwa-install';b.innerHTML='⬇ 앱으로 설치';const ss=$('#saveState');ss&&ss.parentNode.insertBefore(b,ss);}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();INST_EVT=e;instBtn();});
+window.addEventListener('appinstalled',()=>{INST_EVT=null;const b=$('#instBtn');b&&b.remove();toast('설치됐어요! 바탕화면·작업표시줄·크롬 앱 목록에서 바로 열 수 있어요.');});
+if(PWA&&!STANDALONE()&&!/iPhone|iPad|Android/i.test(navigator.userAgent))setTimeout(instBtn,0);
 (function(){if(!PWA)return;const h=location.hash;const m=h.match(/[#&]k=([^&]+)/),u=h.match(/[#&]u=([^&]+)/);if(m&&u){try{localStorage.setItem('pm-app-cfg',JSON.stringify({k:decodeURIComponent(m[1]),u:decodeURIComponent(u[1])}));}catch(e){}history.replaceState(null,'',location.pathname+'#time');}})();
 const isMob=()=>window.matchMedia('(max-width:760px)').matches;
 const CLIM=()=>isMob()?4:5;
@@ -1864,7 +1870,7 @@ function aiKeyModal(){
 function pwaMenu(){const c=PWACFG();
   openModal(`<h3>메뉴</h3><div class="mlist">
     <a class="mitem" href="${PM_URL}" target="_blank" rel="noopener">페이스메이커 전체 열기 (만다라트 · 회고 등)<span>›</span></a>
-    <button class="mitem" data-act="sync-now">지금 동기화하기<span>↻</span></button><button class="mitem" data-act="ai-key">AI 키 설정<span>›</span></button><button class="mitem" data-act="setup-again">연결 다시 설정하기<span>›</span></button></div>
+    ${STANDALONE()?'':'<button class="mitem" data-act="pwa-install">앱으로 설치 (바로가기 만들기)<span>⬇</span></button>'}<button class="mitem" data-act="sync-now">지금 동기화하기<span>↻</span></button><button class="mitem" data-act="ai-key">AI 키 설정<span>›</span></button><button class="mitem" data-act="setup-again">연결 다시 설정하기<span>›</span></button></div>
     <p class="desc" style="margin-top:14px">${c?(SHEET_OK?'구글 시트와 연결돼 있어요. PC 페이스메이커와 같은 일정을 써요.':'구글 시트에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.'):'아직 연결 설정이 안 됐어요.'}</p>
     <div class="actions"><button class="btn" data-act="m-cancel">닫기</button></div>`,{});}
 function weekPicker(){const cur=UI.ttw||dKey(mondayOf(TODAY));const cy=+addDays(cur,3).slice(0,4);const years=[...new Set(CAL_MONTHS.map(k=>+k.slice(0,4)))];
@@ -2347,6 +2353,9 @@ const ACT={
  'mp-m':t=>{UI.cmonth=t.dataset.m;saveUI();closeModal();render();},
  'setup-again':()=>{closeModal();setupModal();},
  'sync-now':async t=>{t.disabled=true;t.textContent='맞추는 중…';await sheetFlush(true);await sheetPull(true);closeModal();toast(SHEET_OK?'최신 상태로 맞췄어요.':'연결하지 못했어요. 인터넷을 확인해 주세요.');},
+ 'pwa-install':async()=>{if(INST_EVT){const e=INST_EVT;INST_EVT=null;closeModal();e.prompt();try{const r=await e.userChoice;if(r.outcome==='accepted'){const b=$('#instBtn');b&&b.remove();}}catch(_){}return;}
+   const ios=/iPhone|iPad/i.test(navigator.userAgent);
+   openModal(`<h3>앱으로 설치하기</h3>${ios?`<ol class="inst-ol"><li>사파리 아래쪽 <b>공유 버튼</b>(□↑)을 눌러요.</li><li><b>홈 화면에 추가</b>를 눌러요.</li></ol>`:`<ol class="inst-ol"><li>크롬 주소창 오른쪽 끝의 <b>설치 아이콘</b>(모니터에 ↓ 모양)을 눌러요.</li><li>안 보이면 오른쪽 위 <b>⋮ → 전송, 저장, 공유 → 페이지를 앱으로 설치</b>(또는 <b>바로가기 만들기</b> → ‘창으로 열기’ 체크)를 눌러요.</li><li>설치하면 바탕화면·작업표시줄·크롬 앱 목록에서 따로 창으로 열려요.</li></ol>`}<div class="actions"><button class="btn primary" data-act="m-cancel">알겠어요</button></div>`,{});},
  mb:t=>{const v=t.dataset.v;if(v==='more'&&PWA){pwaMenu();return;}if(v==='more'){openModal(`<h3>메뉴</h3><div class="mlist">${TABS.filter(x=>x[0]!=='time').map(([k,l])=>`<button class="mitem ${UI.tab===k?'on':''}" data-tab="${k}">${l}<span>›</span></button>`).join('')}</div><div class="actions"><button class="btn" data-act="m-cancel">닫기</button></div>`,{});return;}closeModal();UI.tt=v;if(UI.tab!=='time'){setTab('time');}else{saveUI();render();window.scrollTo(0,0);}},
  'cm-color':t=>{MODAL.sync();MODAL.open=MODAL.open===t.dataset.k?null:t.dataset.k;MODAL.draw();},
  'cm-pick':t=>{MODAL.sync();const c=MODAL.list.find(z=>z.k===t.dataset.k);if(c){c.c=t.dataset.c;delete c.f;delete c.x;}MODAL.draw();},
@@ -2503,7 +2512,7 @@ load();
 })();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{});
-(function(){const B="0dbca91752";
+(function(){const B="ed9874b579";
 async function chk(){try{const v=await fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json());
 if(!v||v.b===B||sessionStorage.getItem("pm-upd")===v.b)return;sessionStorage.setItem("pm-upd",v.b);
 const r=await fetch("index.html",{cache:"reload"});if(!r.ok)return;
