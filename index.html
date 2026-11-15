@@ -801,7 +801,12 @@ function migrateTime(){const T=S.time;let ch=false;
     keys.forEach(dk=>{(T.events[dk]||[]).slice().forEach(e=>{if(!isAD(e)||e._m)return;let last=dk;while(true){const nk=addDays(last,1);const nx=(T.events[nk]||[]).find(z=>isAD(z)&&!z._m&&z.t===e.t&&evCat(z)===evCat(e));if(!nx)break;nx._m=1;last=nk;}if(last!==dk){e.ed=last;ch=true;}});});
     keys.forEach(dk=>{if(!T.events[dk])return;T.events[dk]=T.events[dk].filter(e=>!e._m);if(!T.events[dk].length)delete T.events[dk];});T.mig=5;ch=true;}
   if(T.mig<4){Object.keys(T.events).forEach(dk=>{const h=HOLI[dk];if(!h)return;const names=h[0].split(' · ');const a=T.events[dk].filter(e=>!(evCat(e)==='mine'&&names.includes((e.t||'').trim())));if(a.length!==T.events[dk].length){if(a.length)T.events[dk]=a;else delete T.events[dk];}});T.mig=4;ch=true;}if(ch&&typeof dirty!=='undefined')dirty.add('time');}
-function applyLoaded(o){const x=JSON.parse(JSON.stringify(o||{}));S.todo={};Object.entries(x.todo||{}).forEach(([k,v])=>{if(v&&typeof v==='object')S.todo[k]=v;});S.core=normCore(x.core);const t=x.time||{};S.time={blocks:Array.isArray(t.blocks)?t.blocks:[],events:(t.events&&typeof t.events==='object')?t.events:{},rem:Array.isArray(t.rem)?t.rem:[],mig:t.mig||0,cats:Array.isArray(t.cats)?t.cats:null};migrateTime();rebuildCats();const r=x.reviews||{};S.reviews={w:r.w||{},m:r.m||{}};S.months={};Object.entries(x.months||{}).forEach(([k,v])=>{S.months[k]=normMonth(v);});}
+function todoClean(){const ch=new Set();const nm=x=>(x.t||'').trim();
+  Object.entries(S.todo||{}).forEach(([mk,m])=>{if(!m||typeof m!=='object')return;Object.entries(m).forEach(([k,d])=>{if(k.startsWith('wk:')||!d||!Array.isArray(d.tasks))return;
+    const base={};d.tasks.forEach(t=>{if(!t.carried&&nm(t)&&!base[nm(t)])base[nm(t)]=t;});const kill=new Set();
+    d.tasks.forEach(t=>{if(!t.carried||!nm(t))return;const o=base[nm(t)];if(!o||o===t)return;if(t.done)o.done=true;if(!o.tm&&t.tm){o.tm=t.tm;o.te=t.te;}if(!o.pri&&t.pri)o.pri=t.pri;kill.add(t);});
+    if(kill.size){d.tasks=d.tasks.filter(t=>!kill.has(t));renumPri(d);ch.add(mk);}});});return ch;}
+function applyLoaded(o){const x=JSON.parse(JSON.stringify(o||{}));S.todo={};Object.entries(x.todo||{}).forEach(([k,v])=>{if(v&&typeof v==='object')S.todo[k]=v;});S.core=normCore(x.core);const t=x.time||{};S.time={blocks:Array.isArray(t.blocks)?t.blocks:[],events:(t.events&&typeof t.events==='object')?t.events:{},rem:Array.isArray(t.rem)?t.rem:[],mig:t.mig||0,cats:Array.isArray(t.cats)?t.cats:null};migrateTime();rebuildCats();const r=x.reviews||{};S.reviews={w:r.w||{},m:r.m||{}};S.months={};Object.entries(x.months||{}).forEach(([k,v])=>{S.months[k]=normMonth(v);});const tc=todoClean();if(tc.size)setTimeout(()=>tc.forEach(mk=>markDirty('t:'+mk)),0);}
 const hasContent=()=>S.core.center||S.core.goals.some(g=>g.title||g.items.some(Boolean))||S.time.blocks.length||Object.keys(S.months).length||Object.keys(S.reviews.w).length;
 
 let UI={tab:'today',exec:'month',month:NOWM,goal:0,rev:'w',week:CURWEEK,rmonth:NOWM,tt:'week',ttw:dKey(mondayOf(TODAY)),cmonth:CAL_MONTHS.includes(TODAYM)?TODAYM:NOWM};
@@ -2272,7 +2277,7 @@ function vTodo(){
       <div class="card"><h3>${dk===TODAYK?'오늘의':`${dt.getMonth()+1}/${dt.getDate()}`} Top 3</h3><p class="desc">오늘 딱 이것만은. 할 일 옆 ☆을 눌러 순서대로 1~3을 정하고, ⋮⋮을 끌어 순서를 바꿔요.</p>
         ${top.length?`<div class="top3" data-dk="${dk}">${top.map(t=>`<div class="t3 ${t.done?'dn':''}" data-tid="${t.id}">${top.length>1?'<span class="t3g" title="끌어서 순서 바꾸기">⋮⋮</span>':''}<span class="t3n">${t.pri}</span><button class="ck ${t.done?'on':''}" data-act="td-ck" data-id="${t.id}"></button><span class="t3t">${esc(t.t)||'(제목 없음)'}</span>${(t.sub||[]).length?`<span class="td-cnt">${t.sub.filter(x=>x.done).length}/${t.sub.length}</span>`:''}</div>`).join('')}</div>`:'<p class="desc" style="margin:0;color:var(--mute)">아직 정하지 않았어요.</p>'}
       </div>
-      <div class="card"><div class="row"><h3>${dk===TODAYK?'오늘 할 일':`${dt.getMonth()+1}/${dt.getDate()} (${WD[dt.getDay()]}) 할 일`}</h3><span class="sp"></span>${carry?`<button class="btn sm" data-act="td-carry" data-from="${pk}">${parseD(pk).getMonth()+1}/${parseD(pk).getDate()} 못 끝낸 일 ${carry}개 가져오기</button>`:''}</div>
+      <div class="card"><div class="row"><h3>${dk===TODAYK?'오늘 할 일':`${dt.getMonth()+1}/${dt.getDate()} (${WD[dt.getDay()]}) 할 일`}</h3><span class="sp"></span>${carry?`<button class="btn sm" data-act="td-carry" data-from="${pk}">${parseD(pk).getMonth()+1}/${parseD(pk).getDate()} 못 끝낸 일 ${carry}개 옮겨오기</button>`:''}</div>
         <div class="tdl">${tasks.map(row).join('')||'<p class="desc">아직 할 일이 없어요. 아래에 적고 Enter를 누르세요.</p>'}</div>
         <div class="td-addrow"><input class="f td-add" id="tdNew" placeholder="+ 할 일 추가 (Enter) — 예) 이번 주말 에이전시 투어 준비"><div class="dur-seg sm">${[30,60,120].map(m=>`<button type="button" class="${UI.tdur===m?'on':''}" data-act="tdur" data-m="${m}">${fmtDur(m)}</button>`).join('')}</div></div>
         <p class="desc" style="margin:10px 0 0">▸를 누르면 세부 항목을 달 수 있어요. 세부 항목이 있는 일은 진행도가 숫자로 보여요.</p>
@@ -2381,7 +2386,10 @@ const ACT={
  'td-open':t=>{const dk=UI.tdd||TODAYK;const x=tdFind(dk,t.dataset.id);if(!x)return;x.open=!x.open;tdDirty(dk);render(true);if(x.open)setTimeout(()=>{const i=$(`[data-addsub="${x.id}"]`);i&&i.focus();},0);},
  'td-del':t=>{const dk=UI.tdd||TODAYK;const d=TD(dk,true);const x=d.tasks.find(z=>z.id===t.dataset.id);if(!x)return;const p=x.pri;d.tasks=d.tasks.filter(z=>z!==x);if(p)d.tasks.forEach(z=>{if(z.pri>p)z.pri--;});tdDirty(dk);render(true);toast('지웠어요. Ctrl+Z로 되돌릴 수 있어요.');},
  'td-sdel':t=>{const dk=UI.tdd||TODAYK;const x=tdFind(dk,t.dataset.id);if(!x)return;x.sub=(x.sub||[]).filter(z=>z.id!==t.dataset.sid);tdDirty(dk);render(true);},
- 'td-carry':t=>{const dk=UI.tdd||TODAYK;const src=TD(t.dataset.from);const d=TD(dk,true);let n=0;src.tasks.filter(x=>!x.done&&!x.carried).forEach(x=>{d.tasks.push({id:uid(),t:x.t,done:false,pri:0,open:false,sub:(x.sub||[]).filter(z=>!z.done).map(z=>({id:uid(),t:z.t,done:false}))});x.carried=true;n++;});tdDirty(t.dataset.from);tdDirty(dk);render(true);toast(`${n}개를 가져왔어요.`);},
+ 'td-carry':t=>{const dk=UI.tdd||TODAYK;const from=t.dataset.from;if(!from||from===dk)return;const src=TD(from,true);const d=TD(dk,true);const nm=x=>(x.t||'').trim();const have=new Set(d.tasks.map(nm));
+   const mv=src.tasks.filter(x=>!x.done&&!x.carried);src.tasks=src.tasks.filter(x=>!mv.includes(x));renumPri(src);let n=0,sk=0;
+   mv.forEach(x=>{if(nm(x)&&have.has(nm(x))){sk++;return;}unsched(x);x.pri=0;delete x.carried;d.tasks.push(x);have.add(nm(x));n++;});
+   tdDirty(from);tdDirty(dk);render(true);toast(`${n}개를 옮겨왔어요.${sk?` (이미 있던 ${sk}개는 합쳤어요)`:''}`);},
  'td-ck-today':t=>{const x=tdFind(TODAYK,t.dataset.id);if(!x)return;x.done=!x.done;tdDirty(TODAYK);render(true);},
  'go-todo':()=>{UI.tt='todo';UI.tdd=TODAYK;go({tab:'time'});},
  ttw:t=>{if(!t.dataset.w)return;UI.ttw=t.dataset.w;saveUI();render(true);},
@@ -2512,7 +2520,7 @@ load();
 })();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{});
-(function(){const B="ed9874b579";
+(function(){const B="37383e15ac";
 async function chk(){try{const v=await fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json());
 if(!v||v.b===B||sessionStorage.getItem("pm-upd")===v.b)return;sessionStorage.setItem("pm-upd",v.b);
 const r=await fetch("index.html",{cache:"reload"});if(!r.ok)return;
