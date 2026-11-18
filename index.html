@@ -787,6 +787,7 @@ rebuildCats(true);
 const OLD2CAT={buy:'mine',audition:'actor',shoot:'actor',class:'actor',show:'hobby',etc:'mine',act:'actor',cls:'hobby',body:'hobby'};
 const catOf=x=>ECATS[x]?x:(OLD2CAT[x]||'mine');
 const isAllDay=e=>e.allday===true||(e.allday===undefined&&!e.tm);
+const barM=e=>!e.tm||e.txt!==true;const calOn=(b,dk)=>b.calx&&dk in b.calx?!!b.calx[dk]:!!b.cal;
 const ampm=t=>{if(!t)return '';const [h,m]=t.split(':').map(Number);return `${h<12?'오전':'오후'} ${String(h%12===0?12:h%12).padStart(2,'0')}:${String(m).padStart(2,'0')}`;};
 const hourRange=(a,b)=>{const f=t=>{const [h,m]=t.split(':').map(Number);return m?`${h}:${String(m).padStart(2,'0')}`:`${h}`;};return `${f(a)}-${f(b)}시`;};
 const evCat=e=>catOf(e.cat||e.type);
@@ -1471,9 +1472,9 @@ function buildSpans(){SPANS=[];if(!S.time)return;Object.entries(S.time.events).f
 function evsOn(dk){const sp=SPANS.filter(x=>x.dk<dk&&x.e.ed>=dk);return [...sp,...(S.time.events[dk]||[]).map(e=>({dk,e}))];}
 const md=k=>`${+k.slice(5,7)}/${+k.slice(8)}`;
 function calItems(dk,mode){
-  const bl=blocksOn(dk).filter(b=>b.cal).sort((a,b)=>toMin(a.s)-toMin(b.s)).map(b=>({allday:true,t:`${b.t} ${hourRange(b.s,b.e)}`,cat:catOf(b.c),k:'0'+b.s}));
-  const src=mode==='own'?(S.time.events[dk]||[]).map(e=>({dk,e})):evsOn(dk);
-  const ev=src.filter(x=>!(mode==='grid'&&x.e.ed&&x.e.ed>x.dk)).map((x,i)=>{const e=x.e;const ad=isAllDay(e)||!!(e.ed&&e.ed>x.dk);return {allday:ad,t:e.t+(e.ed&&e.ed>x.dk&&mode!=='grid'?` (${md(x.dk)}~${md(e.ed)})`:''),tm:e.tm,cat:evCat(e),id:e.id,sdk:x.dk,k:(ad?'1':'2')+(ad?String(i).padStart(3,'0'):(e.tm||''))};});
+  const bl=blocksOn(dk).filter(b=>calOn(b,dk)).sort((a,b)=>toMin(a.s)-toMin(b.s)).map(b=>({allday:true,t:`${b.t} ${hourRange(b.s,b.e)}`,cat:catOf(b.c),k:'0'+b.s}));
+  const src=(mode==='own'?(S.time.events[dk]||[]).map(e=>({dk,e})):evsOn(dk)).filter(x=>!x.e.noM);
+  const ev=src.filter(x=>!(mode==='grid'&&x.e.ed&&x.e.ed>x.dk)).map((x,i)=>{const e=x.e;const ad=barM(e)||!!(e.ed&&e.ed>x.dk);return {allday:ad,t:e.t+(e.ed&&e.ed>x.dk&&mode!=='grid'?` (${md(x.dk)}~${md(e.ed)})`:''),tm:e.tm,cat:evCat(e),id:e.id,sdk:x.dk,k:(ad?'1':'2')+(ad?String(i).padStart(3,'0'):(e.tm||''))};});
   return [...bl,...ev].sort((a,b)=>a.k.localeCompare(b.k));
 }
 const evHtml=x=>{const c=ECATS[x.cat]||ECATS.mine;return x.allday?`<span class="evb" style="background:${c[1]};color:${c[2]}">${esc(x.t)}</span>`:`<span class="evt" style="color:${c[3]}"><b>${ampm(x.tm)}</b>${esc(x.t)}</span>`;};
@@ -1792,8 +1793,8 @@ document.addEventListener('dblclick',e=>{const el=e.target.closest('textarea.mc'
 function catOpts(sel){return Object.entries(ECATS).map(([k,[n,c]])=>`<button class="opt ${k===sel?'on':''}" data-act="opt" data-v="${k}"><i style="background:${c}"></i>${esc(n)}</button>`).join('')+`<button class="opt addc" data-act="icat-new">+ 새 카테고리</button>`;}
 function itemModal(o){
   const dk=o.dk||TODAYK;let base;const nr=()=>({f:'w',n:1,days:[dowMon(parseD(dk))],mode:'date',end:'none',cnt:10});
-  if(o.kind==='ev'){const e=findEv(dk,o.id);if(!e)return;base={ed:e.ed||'',t:e.t,p:e.p||'',cat:evCat(e),tm:e.tm||'',te:e.te||'',memo:e.memo||'',adBar:isAllDay(e)&&!!e.tm,rep:false,r:nr(),until:'',cal:false};}
-  else if(o.kind==='blk'){const b=S.time.blocks.find(x=>x.id===o.id);if(!b)return;base={t:b.t,p:b.p||'',cat:catOf(b.c),tm:b.s,te:b.e,memo:b.memo||'',rep:b.r.f,r:Object.assign(nr(),JSON.parse(JSON.stringify(b.r))),until:b.until||'',cal:!!b.cal};}
+  if(o.kind==='ev'){const e=findEv(dk,o.id);if(!e)return;base={ed:e.ed||'',t:e.t,p:e.p||'',cat:evCat(e),tm:e.tm||'',te:e.te||'',memo:e.memo||'',txt:!!e.txt&&!!e.tm,noM:!!e.noM,rep:false,r:nr(),until:'',cal:false};}
+  else if(o.kind==='blk'){const b=S.time.blocks.find(x=>x.id===o.id);if(!b)return;base={t:b.t,p:b.p||'',cat:catOf(b.c),tm:b.s,te:b.e,memo:b.memo||'',rep:b.r.f,r:Object.assign(nr(),JSON.parse(JSON.stringify(b.r))),until:b.until||'',cal:calOn(b,dk)};}
   else base={t:'',p:'',cat:'mine',tm:o.tm||'',te:o.te||'',memo:'',rep:false,r:nr(),until:'',cal:false};
   if(!base.r.days||!base.r.days.length)base.r.days=[dowMon(parseD(dk))];
   const isNew=o.kind==='new';const allday=!base.tm&&!isNew;const isBlk=o.kind==='blk';const R0=base.r;
@@ -1805,7 +1806,8 @@ function itemModal(o){
    <label class="row allday-tg" id="iAllRow" ${base.rep?'hidden':''}><input type="checkbox" id="iAll" data-allday="iS,iE" ${allday&&!base.rep?'checked':''}> 종일 일정</label>
    <div id="iEDrow" class="rep-line" style="margin-top:6px" ${allday&&!base.rep?'':'hidden'}><small class="desc" style="margin:0">끝나는 날</small><input class="f" type="date" id="iED" value="${base.ed||dk}"><small class="desc" style="margin:0">여러 날이면 바꿔 주세요</small></div>
    <div class="two tp-row" style="margin-top:8px" ${allday&&!base.rep?'hidden':''}><div><small class="desc">시작</small>${tp('iS',base.tm,'시작 시간','iE')}</div><div><small class="desc">끝</small>${tp('iE',base.te,'—')}</div></div>
-   <label class="row" id="xADrow" style="margin-top:6px;font-size:13px;gap:8px;cursor:pointer;color:var(--sub)" ${allday||base.rep?'hidden':''}><input type="checkbox" id="iAD" ${base.adBar?'checked':''}> 시간은 주간 타임테이블에만 쓰고, 월간 캘린더에는 종일 막대로 보이기</label>
+   <label class="row" id="xADrow" style="margin-top:6px;font-size:13px;gap:8px;cursor:pointer;color:var(--sub)" ${allday||base.rep?'hidden':''}><input type="checkbox" id="iAD" ${base.txt?'checked':''}> 월간 캘린더에 종일 표시 해제 <small style="color:var(--mute)">(컬러 막대 대신 글자로만 보기)</small></label>
+   ${base.noM?`<label class="row" style="margin-top:6px;font-size:13px;gap:8px;cursor:pointer;color:var(--sub)"><input type="checkbox" id="iNoM" checked> 월간 캘린더에서 숨기기 <small style="color:var(--mute)">(반복 일정에서 떼어 낸 일정)</small></label>`:''}
    <label class="l">반복</label><div class="optrow" data-group="irep">${REPS.map(([v,l])=>`<button class="opt ${(base.rep||'0')===v?'on':''}" data-act="opt" data-v="${v}">${v==='0'?'':'↻ '}${l}</button>`).join('')}</div>
    <div id="iRep" class="repbox" ${base.rep?'':'hidden'}>
      <div class="rep-line"><input class="f num" type="number" id="iN" min="1" max="99" value="${R0.n||1}" inputmode="numeric"><span id="iNu">주</span><span>마다</span><small class="desc" id="iNh"></small></div>
@@ -1853,7 +1855,7 @@ function itemModal(o){
      if(rep==='w'&&!r.days.length)return err('반복할 요일을 골라 주세요.');
      const until=rep&&r.end==='until'?($('#iU').value||''):'';if(rep&&r.end==='until'&&!until)return err('반복이 끝나는 날짜를 골라 주세요.');if(until&&until<nd)return err('반복 끝나는 날이 시작 날짜보다 빨라요.');
      let ed=all?($('#iED').value||''):'';if(ed&&ed<nd)return err('끝나는 날이 시작 날짜보다 빨라요.');if(ed===nd)ed='';
-     return {ed,t,p:$('#iP').value.trim(),nd,rep,r,all,tm,te,until,cal:$('#iCal').checked,memo:$('#iM').value.trim(),cat:(($('[data-group="icat"] .opt.on')||{}).dataset||{}).v||'mine',adBar:$('#iAD').checked};},
+     return {ed,t,p:$('#iP').value.trim(),nd,rep,r,all,tm,te,until,cal:$('#iCal').checked,memo:$('#iM').value.trim(),cat:(($('[data-group="icat"] .opt.on')||{}).dataset||{}).v||'mine',txt:$('#iAD').checked,noM:!!($('#iNoM')&&$('#iNoM').checked)};},
    ok(){const v=this.collect();if(!v)return false;
      if(this.kind==='blk'){this.pendingVals=v;scopeAsk('save');return false;}
      if(this.kind==='ev'){const arr=S.time.events[this.dk]||[];S.time.events[this.dk]=arr.filter(x=>x.id!==this.id);if(!S.time.events[this.dk].length)delete S.time.events[this.dk];}
@@ -1864,7 +1866,7 @@ function itemModal(o){
 }
 function itemCreate(v,keepId){
   if(v.rep)S.time.blocks.push({id:uid(),r:v.r,s:v.tm,e:v.te,t:v.t,p:v.p||'',c:v.cat,cal:v.cal,memo:v.memo,from:v.from||v.nd,until:v.until||'',ex:[]});
-  else{const ev={id:keepId||uid(),t:v.t,p:v.p||'',cat:v.cat,allday:v.all?true:(v.adBar||false),tm:v.tm,te:v.te,memo:v.memo};if(v.all&&v.ed&&v.ed>v.nd)ev.ed=v.ed;(S.time.events[v.nd]=S.time.events[v.nd]||[]).push(ev);}
+  else{const ev={id:keepId||uid(),t:v.t,p:v.p||'',cat:v.cat,allday:!!v.all,tm:v.tm,te:v.te,memo:v.memo};if(!v.all&&v.tm&&v.txt)ev.txt=true;if(v.noM)ev.noM=true;if(v.all&&v.ed&&v.ed>v.nd)ev.ed=v.ed;(S.time.events[v.nd]=S.time.events[v.nd]||[]).push(ev);}
 }
 function scopeAsk(kind){
   const M0=MODAL;const d=parseD(M0.dk);const lbl=`${d.getMonth()+1}/${d.getDate()}(${WD[d.getDay()]})`;
@@ -1882,10 +1884,13 @@ function scopeApply(v){
     else{S.time.blocks=S.time.blocks.filter(x=>x!==b);toast('반복 일정을 모두 지웠어요.');}
   }else{
     const val=M0.pendingVals;
-    if(v==='one'){b.ex=[...(b.ex||[]),M0.dk];itemCreate(Object.assign({},val,{rep:false,adBar:false}));toast('이 날만 바꿨어요.');}
-    else if(v==='after'){cut();itemCreate(Object.assign({},val,val.rep?{from:M0.dk>val.nd?M0.dk:val.nd}:{}));toast(`${md(M0.dk)}부터 이후 일정을 바꿨어요.`);}
+    const onlyCal=val.rep&&val.nd===M0.dk&&val.t===b.t&&(val.p||'')===(b.p||'')&&val.cat===catOf(b.c)&&val.tm===b.s&&val.te===b.e&&(val.memo||'')===(b.memo||'')&&ruleText(val.r,val.until)===ruleText(b.r,b.until);
+    const cl=val.cal?'월간 캘린더에 보이게':'월간 캘린더에서 숨기게';
+    if(v==='one'&&onlyCal){b.calx=Object.assign({},b.calx||{},{[M0.dk]:!!val.cal});if(!!val.cal===!!b.cal)delete b.calx[M0.dk];toast(`${md(M0.dk)} 하루만 ${cl} 바꿨어요.`);}
+    else if(v==='one'){b.ex=[...(b.ex||[]),M0.dk];itemCreate(Object.assign({},val,{rep:false,txt:false,noM:!val.cal}));toast('이 날만 바꿨어요.');}
+    else if(v==='after'){const cx=b.calx;cut();itemCreate(Object.assign({},val,val.rep?{from:M0.dk>val.nd?M0.dk:val.nd}:{}));if(cx&&onlyCal){Object.keys(cx).forEach(k=>{if(k>=M0.dk)delete cx[k];});}toast(onlyCal?`${md(M0.dk)}부터 이후 일정을 ${cl} 바꿨어요.`:`${md(M0.dk)}부터 이후 일정을 바꿨어요.`);}
     else if(!val.rep){S.time.blocks=S.time.blocks.filter(x=>x!==b);itemCreate(val);toast('반복을 끝내고 한 번짜리 일정으로 바꿨어요.');}
-    else{Object.assign(b,{t:val.t,p:val.p,c:val.cat,s:val.tm,e:val.te,cal:val.cal,memo:val.memo,until:val.until||'',r:val.r});if(!b.from||val.nd<b.from)b.from=val.nd;if(val.r.f==='m'||val.r.f==='y')b.from=b.from<=val.nd?b.from:val.nd;toast('반복 일정 전체를 바꿨어요 · '+ruleText(b.r,b.until));}
+    else{Object.assign(b,{t:val.t,p:val.p,c:val.cat,s:val.tm,e:val.te,cal:val.cal,memo:val.memo,until:val.until||'',r:val.r});delete b.calx;if(!b.from||val.nd<b.from)b.from=val.nd;if(val.r.f==='m'||val.r.f==='y')b.from=b.from<=val.nd?b.from:val.nd;toast('반복 일정 전체를 바꿨어요 · '+ruleText(b.r,b.until));}
   }
   markDirty('time');closeModal();render(true);
 }
@@ -2091,14 +2096,14 @@ function eventModal(dk,id){
    <label class="row allday-tg"><input type="checkbox" id="xAll" data-allday="xS,xE" ${e.tm?'':'checked'}> 종일 일정</label>
    <div class="two tp-row" id="xTimes" style="margin-top:8px" ${e.tm?'':'hidden'}><div><small class="desc">시작</small>${tp('xS',e.tm||'','시작 시간','xE')}</div><div><small class="desc">끝</small>${tp('xE',e.te||'','—')}</div></div>
    <label class="l">메모</label><textarea class="f" id="xM" rows="3" placeholder="장소, 준비물, 연락처 등 — 예) 홍대입구 3번 출구, 프로필 5장 출력">${esc(e.memo||'')}</textarea>
-   <label class="row" id="xADrow" style="margin-top:10px;font-size:13px;gap:8px;cursor:pointer;color:var(--sub)" ${e.tm?'':'hidden'}><input type="checkbox" id="xAD" ${ad&&e.tm?'checked':''}> 시간은 주간 타임테이블에만 쓰고, 월간 캘린더에는 종일 막대로 보이기</label>
+   <label class="row" id="xADrow" style="margin-top:10px;font-size:13px;gap:8px;cursor:pointer;color:var(--sub)" ${e.tm?'':'hidden'}><input type="checkbox" id="xAD" ${e.txt&&e.tm?'checked':''}> 월간 캘린더에 종일 표시 해제 <small style="color:var(--mute)">(컬러 막대 대신 글자로만 보기)</small></label>
    <label class="l">카테고리</label><div class="optrow" data-group="xcat">${Object.entries(ECATS).map(([k,[n,c]])=>`<button class="opt ${k===cat?'on':''}" data-act="opt" data-v="${k}"><i style="background:${c}"></i>${n}</button>`).join('')}</div>
    <p class="err" id="xErr"></p>
    <div class="actions"><button class="btn danger left" data-act="x-del">삭제</button><button class="btn" data-act="m-cancel">취소</button><button class="btn primary" data-act="m-ok">저장</button></div>`,
   {ok(){const t=$('#xT').value.trim();const nd=$('#xD').value||dk;const all=$('#xAll').checked;const tm=all?'':nt('xS'),te=all?'':nt('xE');if(!all&&!tm){$('#xErr').textContent='시작 시간을 고르거나 ‘종일 일정’을 체크해 주세요.';return false;}
      if(!t){$('#xErr').textContent='제목을 적어 주세요.';return false;}if(te&&!tm){$('#xErr').textContent='끝 시간을 쓰려면 시작 시간도 적어 주세요.';return false;}if(tm&&te&&toMin(te)<=toMin(tm)){$('#xErr').textContent='끝 시간이 시작보다 늦어야 해요.';return false;}
      const ev=moveEv(dk,id,nd);if(!ev)return true;
-     Object.assign(ev,{t,tm,te,memo:$('#xM').value.trim(),cat:($('[data-group="xcat"] .opt.on')||{}).dataset?.v||cat,allday:tm?$('#xAD').checked:true});delete ev.type;
+     Object.assign(ev,{t,tm,te,memo:$('#xM').value.trim(),cat:($('[data-group="xcat"] .opt.on')||{}).dataset?.v||cat,allday:!tm});if(tm&&$('#xAD').checked)ev.txt=true;else delete ev.txt;delete ev.type;
      markDirty('time');render(true);toast('일정을 고쳤어요.');return true;},
    del(){const arr=S.time.events[dk]||[];S.time.events[dk]=arr.filter(x=>x.id!==id);if(!S.time.events[dk].length)delete S.time.events[dk];markDirty('time');closeModal();render(true);toast('일정을 지웠어요.');}});
 }
@@ -2214,7 +2219,7 @@ function ttDrop(){
     const ns=fmtMin(s0),ne=fmtMin(e0),odk=el.dataset.dk,od=dowMon(parseD(odk)),nd=D.resize?od:D.d1;const ndk=addDays(odk,nd-od);
     const dd=parseD(odk),nD=parseD(ndk);
     openModal(`<h3>반복 일정을 옮길까요?</h3><p class="desc">‘${esc(b.t)}’ → ${nD.getMonth()+1}/${nD.getDate()}(${WD[nD.getDay()]}) ${ns}–${ne}</p><div class="actions"><button class="btn ghost left" data-act="m-cancel">취소</button><button class="btn" data-act="mv-scope" data-v="one">${dd.getMonth()+1}/${dd.getDate()} 하루만</button><button class="btn primary" data-act="mv-scope" data-v="all">반복 전체</button></div>`,
-      {cancel(){render(true);},apply(v){if(v==='one'){b.ex=[...(b.ex||[]),odk];(S.time.events[ndk]=S.time.events[ndk]||[]).push({id:uid(),t:b.t,p:b.p||'',cat:catOf(b.c),allday:false,tm:ns,te:ne,memo:b.memo||''});}
+      {cancel(){render(true);},apply(v){if(v==='one'){b.ex=[...(b.ex||[]),odk];(S.time.events[ndk]=S.time.events[ndk]||[]).push({id:uid(),t:b.t,p:b.p||'',cat:catOf(b.c),allday:false,tm:ns,te:ne,memo:b.memo||'',...(calOn(b,odk)?{}:{noM:true})});}
         else{b.s=ns;b.e=ne;const r=b.r;const delta=nd-od;
           if(delta){if(r.f==='w'){r.days=[...new Set(r.days.map(x=>x===od?nd:x))].sort();}
             else if(r.f==='d'){b.from=addDays(b.from||odk,delta);}
@@ -2556,7 +2561,7 @@ load();
 })();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{});
-(function(){const B="870b43106d";
+(function(){const B="45de0e0b92";
 async function chk(){try{const v=await fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json());
 if(!v||v.b===B||sessionStorage.getItem("pm-upd")===v.b)return;sessionStorage.setItem("pm-upd",v.b);
 const r=await fetch("index.html",{cache:"reload"});if(!r.ok)return;
