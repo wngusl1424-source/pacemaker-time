@@ -1795,11 +1795,12 @@ function itemModal(o){
   const dk=o.dk||TODAYK;let base;const nr=()=>({f:'w',n:1,days:[dowMon(parseD(dk))],mode:'date',end:'none',cnt:10});
   if(o.kind==='ev'){const e=findEv(dk,o.id);if(!e)return;base={ed:e.ed||'',t:e.t,p:e.p||'',cat:evCat(e),tm:e.tm||'',te:e.te||'',memo:e.memo||'',txt:!!e.txt&&!!e.tm,noM:!!e.noM,rep:false,r:nr(),until:'',cal:false};}
   else if(o.kind==='blk'){const b=S.time.blocks.find(x=>x.id===o.id);if(!b)return;base={t:b.t,p:b.p||'',cat:catOf(b.c),tm:b.s,te:b.e,memo:b.memo||'',rep:b.r.f,r:Object.assign(nr(),JSON.parse(JSON.stringify(b.r))),until:b.until||'',cal:calOn(b,dk)};}
+  else if(o.pre){const v=o.pre;base={t:v.t,p:v.p||'',cat:v.cat,tm:v.tm||'',te:v.te||'',memo:v.memo||'',rep:v.rep||false,r:v.r?JSON.parse(JSON.stringify(v.r)):nr(),until:v.until||'',cal:!!v.cal,ed:v.ed||'',txt:!!v.txt};}
   else base={t:'',p:'',cat:'mine',tm:o.tm||'',te:o.te||'',memo:'',rep:false,r:nr(),until:'',cal:false};
   if(!base.r.days||!base.r.days.length)base.r.days=[dowMon(parseD(dk))];
-  const isNew=o.kind==='new';const allday=!base.tm&&!isNew;const isBlk=o.kind==='blk';const R0=base.r;
+  const isNew=o.kind==='new';const allday=o.pre?!!o.pre.all:(!base.tm&&!isNew);const isBlk=o.kind==='blk';const R0=base.r;
   const REPS=[['0','반복 안 함'],['d','매일'],['w','매주'],['m','매달'],['y','매년']];
-  openModal(`${isNew?`<div class="seg kseg"><button class="on">일정</button><button data-act="to-task">할 일 블럭</button></div>`:''}<h3>${isNew?'일정 추가':isBlk?'반복 일정 수정':'일정 수정'}</h3>${isBlk?`<p class="desc">${parseD(dk).getMonth()+1}/${parseD(dk).getDate()} (${WD[parseD(dk).getDay()]})에서 연 반복 일정 · ${esc(ruleText(R0,base.until))}</p>`:''}
+  openModal(`${isNew?`<div class="seg kseg"><button class="on">일정</button><button data-act="to-task">할 일 블럭</button></div>`:''}<h3>${o.pre?'일정 복제':isNew?'일정 추가':isBlk?'반복 일정 수정':'일정 수정'}</h3>${o.pre?'<p class="desc">내용을 그대로 가져왔어요. 날짜나 시간을 바꾸고 추가를 눌러 주세요.</p>':''}${isBlk?`<p class="desc">${parseD(dk).getMonth()+1}/${parseD(dk).getDate()} (${WD[parseD(dk).getDay()]})에서 연 반복 일정 · ${esc(ruleText(R0,base.until))}</p>`:''}
    <label class="l">제목</label><input class="f" id="iT" value="${esc(base.t)}" placeholder="예) 연습실 개인 연습, 오디션, 친구 약속" maxlength="60">
    <label class="l">장소</label><div class="pl-row"><input class="f" id="iP" value="${esc(base.p)}" placeholder="예) 신촌역 3번 출구, 홍대 연습실" maxlength="80"><a class="btn map-btn ${base.p?'':'off'}" id="iPMap" href="${base.p?mapUrl(base.p):'#'}" target="_blank" rel="noopener" title="카카오맵에서 열기">🗺 카카오맵</a></div>
    <div style="margin-top:10px"><small class="desc">날짜</small>${dp('iD',dk)}</div>
@@ -1823,7 +1824,7 @@ function itemModal(o){
    <label class="l">카테고리</label><div class="optrow" data-group="icat">${catOpts(base.cat)}</div>
    <div id="iCatNew" class="repbox" hidden><div class="rep-line"><input class="f" id="iCN" placeholder="새 카테고리 이름" maxlength="20"><button class="btn sm primary" data-act="icn-add">추가</button></div><div class="pal" style="margin-top:8px">${PALETTE.map((c,i)=>`<button class="sw ${i===12?'on':''}" data-act="icn-pick" data-c="${c}" style="background:${c}"></button>`).join('')}</div></div>
    <p class="err" id="iErr"></p>
-   <div class="actions" id="iAct">${isNew?'':'<button class="btn danger left" data-act="i-del">삭제</button>'}<button class="btn" data-act="m-cancel">취소</button><button class="btn primary" data-act="m-ok">${isNew?'추가':'저장'}</button></div>`,
+   <div class="actions" id="iAct">${isNew?'':'<button class="btn danger left" data-act="i-del">삭제</button><button class="btn" data-act="i-dup" title="같은 내용으로 새 일정 만들기">⧉ 복제</button>'}<button class="btn" data-act="m-cancel">취소</button><button class="btn primary" data-act="m-ok">${isNew?'추가':'저장'}</button></div>`,
   {kind:o.kind,dk,id:o.id,lastWd:dowMon(parseD(dk)),
    repUI(){const f=(($('[data-group="irep"] .opt.on')||{}).dataset||{}).v||'0';const on=f!=='0';
      $('#iRep').hidden=!on;$('#iAllRow').hidden=on;const row=$('.modal .tp-row');const all=$('#iAll');
@@ -1854,7 +1855,7 @@ function itemModal(o){
      const r=this.rule(rep);
      if(rep==='w'&&!r.days.length)return err('반복할 요일을 골라 주세요.');
      const until=rep&&r.end==='until'?($('#iU').value||''):'';if(rep&&r.end==='until'&&!until)return err('반복이 끝나는 날짜를 골라 주세요.');if(until&&until<nd)return err('반복 끝나는 날이 시작 날짜보다 빨라요.');
-     let ed=all?($('#iED').value||''):'';if(ed&&ed<nd)return err('끝나는 날이 시작 날짜보다 빨라요.');if(ed===nd)ed='';
+     let ed=all?($('#iED').value||''):'';const ed0=$('#iED')&&$('#iED').defaultValue;if(ed&&ed<nd&&ed===ed0&&nd!==dk){const sp=ed0>dk?diffDays(dk,ed0):0;ed=sp?addDays(nd,sp):'';}if(ed&&ed<nd)return err('끝나는 날이 시작 날짜보다 빨라요.');if(ed===nd)ed='';
      return {ed,t,p:$('#iP').value.trim(),nd,rep,r,all,tm,te,until,cal:$('#iCal').checked,memo:$('#iM').value.trim(),cat:(($('[data-group="icat"] .opt.on')||{}).dataset||{}).v||'mine',txt:$('#iAD').checked,noM:!!($('#iNoM')&&$('#iNoM').checked)};},
    ok(){const v=this.collect();if(!v)return false;
      if(this.kind==='blk'){this.pendingVals=v;scopeAsk('save');return false;}
@@ -2416,6 +2417,7 @@ const ACT={
  'tp-pick':t=>{const el=$('#'+t.dataset.for);tpClose();if(el)tpSet(el,t.dataset.v);},
  'dp-step':t=>{const inp=$('#'+t.dataset.for);if(!inp||!inp.value)return;inp.value=addDays(inp.value,+t.dataset.d);inp.dispatchEvent(new Event('change',{bubbles:true}));},
  'srch':()=>srModal(),
+ 'i-dup':()=>{const v=MODAL&&MODAL.collect&&MODAL.collect();if(!v)return;closeModal();itemModal({kind:'new',dk:v.nd,pre:v});},
  'sr-open':t=>{const dk=t.dataset.dk,id=t.dataset.id;closeModal();srJump(dk);itemModal({kind:'ev',dk,id});},
  'sr-blk':t=>{const dk=t.dataset.dk,id=t.dataset.id;closeModal();srJump(dk);itemModal({kind:'blk',dk,id});},
  'ev-edit':t=>{closeModal();itemModal({kind:'ev',dk:t.dataset.dk,id:t.dataset.id});},
@@ -2561,7 +2563,7 @@ load();
 })();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{});
-(function(){const B="45de0e0b92";
+(function(){const B="73762f1c54";
 async function chk(){try{const v=await fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json());
 if(!v||v.b===B||sessionStorage.getItem("pm-upd")===v.b)return;sessionStorage.setItem("pm-upd",v.b);
 const r=await fetch("index.html",{cache:"reload"});if(!r.ok)return;
