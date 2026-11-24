@@ -1040,9 +1040,11 @@ function renderNav(){renderMbar();const p=S.core.pending.filter(x=>!x.done).leng
 function render(keepScroll){
   rebuildCats();buildSpans();renderNav();
   const y=window.scrollY;
+  const keep={};['tdNew','wkNew'].forEach(id=>{const el=document.getElementById(id);if(el&&el.value)keep[id]={v:el.value,f:document.activeElement===el,s:el.selectionStart,e:el.selectionEnd};});
   const V={today:vToday,mandalart:vMand,exec:vExec,review:vReview,time:vTime,history:vHistory}[UI.tab]||vToday;
   $('#view').innerHTML=V();
   $$('#view textarea.auto').forEach(autosize);
+  Object.entries(keep).forEach(([id,k])=>{const el=document.getElementById(id);if(!el)return;el.value=k.v;if(k.f){el.focus({preventScroll:true});try{el.setSelectionRange(k.s,k.e);}catch(_){}}});
   centerAll();
   if(keepScroll)window.scrollTo(0,y);
 }
@@ -2346,7 +2348,7 @@ function vTodo(){
   </div>`;
 }
 function tdFind(dk,id){const d=TD(dk,true);return d.tasks.find(t=>t.id===id);}
-function tdAdd(text){const dk=UI.tdd||TODAYK;const d=TD(dk,true);const nt0={id:uid(),t:text,done:false,pri:0,sub:[],open:false};if(UI.tdur)nt0.dur=UI.tdur;d.tasks.push(nt0);tdDirty(dk);render(true);setTimeout(()=>{const x=$('#tdNew');x&&x.focus();},0);}
+function tdAdd(text){const dk=UI.tdd||TODAYK;const d=TD(dk,true);const nt0={id:uid(),t:text,done:false,pri:0,sub:[],open:false};if(UI.tdur)nt0.dur=UI.tdur;d.tasks.push(nt0);const ti=$('#tdNew');if(ti)ti.value='';tdDirty(dk);render(true);setTimeout(()=>{const x=$('#tdNew');x&&x.focus();},0);}
 function tdAddSub(tid,text){const dk=UI.tdd||TODAYK;const t=tdFind(dk,tid);if(!t)return;t.sub=t.sub||[];t.sub.push({id:uid(),t:text,done:false});tdDirty(dk);render(true);setTimeout(()=>{const x=$(`[data-addsub="${tid}"]`);x&&x.focus();},0);}
 
 /* ---------- actions ---------- */
@@ -2388,7 +2390,7 @@ const ACT={
  'wk-carry':t=>{const mon=$('.wk-box').dataset.mon;if(wkMove(t.dataset.from,t.dataset.id,mon)){render(true);toast('이번 주 할 일로 가져왔어요.');}},
  'wk-carry-all':t=>{const mon=$('.wk-box').dataset.mon;const from=t.dataset.from;const pw=WK(from)||{tasks:[]};let n=0;for(const w of [...pw.tasks]){const l=wkLink(from,w.id);if(l?l.t.done:w.done)continue;if(!wkMove(from,w.id,mon))break;n++;}render(true);if(n)toast(`${n}개를 이번 주로 가져왔어요.`);},
  'wk-drop':t=>{wkKill(t.dataset.from,t.dataset.id);render(true);toast('지난주 할 일에서 지웠어요.');},
- 'tdur':t=>{const m=+t.dataset.m;UI.tdur=UI.tdur===m?0:m;saveUI();render(true);setTimeout(()=>{const x=$('#tdNew');x&&x.focus();},0);},
+ 'tdur':t=>{const m=+t.dataset.m;UI.tdur=UI.tdur===m?0:m;saveUI();$$('[data-act="tdur"]').forEach(b=>b.classList.toggle('on',+b.dataset.m===UI.tdur));const x=$('#tdNew');if(x){x.focus();const n=x.value.length;try{x.setSelectionRange(n,n);}catch(_){}}},
  'td-dur':t=>{const dk=UI.tdd||TODAYK;const x=tdFind(dk,t.dataset.id);if(!x)return;const cyc=x.tm?[30,60,120]:[0,30,60,120];const cur=durOf(x);let k=cyc.indexOf(cur);const nx=cyc[(k+1)%cyc.length];if(nx)x.dur=nx;else delete x.dur;if(x.tm)x.te=fmtMin(Math.min(23*60+59,toMin(x.tm)+nx));tdDirty(dk);render(true);},
  'k-dur':t=>{MODAL.dur=+t.dataset.m;MODAL.durUI();},
  'ai-open':()=>{closeModal();aiModal();},
@@ -2515,8 +2517,8 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&e.target.id==='nhName'){e.preventDefault();const b=$('[data-act="add-habit"]');b&&b.click();}
   if(e.target.classList&&e.target.classList.contains('tp-in')&&(e.key==='Enter'||e.key==='Escape'||e.key==='Tab')){if(e.key!=='Tab')e.preventDefault();tpClose();if(e.key==='Enter')e.target.blur();return;}
   if(e.key==='Enter'&&e.target.id==='yhName'){e.preventDefault();ACT['yh-add']();}
-  if(e.key==='Enter'&&!e.isComposing&&e.target.id==='wkNew'){e.preventDefault();const v=e.target.value.trim();if(v){const mon=e.target.dataset.mon;if(WK(mon,true).tasks.length>=WKMAX){toast(`이번 주 할 일은 ${WKMAX}개까지예요.`);return;}WK(mon,true).tasks.push({id:uid(),t:v,done:false,pri:0,sub:[],open:false});wkDirty(mon);render(true);setTimeout(()=>{const x=$('#wkNew');x&&x.focus();},0);}}
-  if(e.key==='Enter'&&!e.isComposing&&e.target.id==='tdNew'){e.preventDefault();const v=e.target.value.trim();if(v)tdAdd(v);}
+  if(e.key==='Enter'&&!e.isComposing&&e.target.id==='wkNew'){e.preventDefault();const v=e.target.value.trim();if(v){const mon=e.target.dataset.mon;if(WK(mon,true).tasks.length>=WKMAX){toast(`이번 주 할 일은 ${WKMAX}개까지예요.`);return;}WK(mon,true).tasks.push({id:uid(),t:v,done:false,pri:0,sub:[],open:false});e.target.value='';wkDirty(mon);render(true);setTimeout(()=>{const x=$('#wkNew');x&&x.focus();},0);}}
+  if(e.key==='Enter'&&!e.isComposing&&e.target.id==='tdNew'){e.preventDefault();const v=e.target.value.trim();if(v){e.target.value='';tdAdd(v);}}
   if(e.key==='Enter'&&!e.isComposing&&e.target.dataset&&e.target.dataset.addsub){e.preventDefault();const v=e.target.value.trim();if(v)tdAddSub(e.target.dataset.addsub,v);}
   if(e.key==='Enter'&&!e.isComposing&&e.target.classList&&e.target.classList.contains('td-in')){e.preventDefault();e.target.blur();}
   if(e.key==='Enter'&&e.target.id==='nhrName'){e.preventDefault();const b=$('[data-act="nh-add"]');b&&b.click();}
@@ -2585,7 +2587,7 @@ load();
 })();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{});
-(function(){const B="46f0f3d1c8";
+(function(){const B="e9bee75e3e";
 async function chk(){try{const v=await fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json());
 if(!v||v.b===B||sessionStorage.getItem("pm-upd")===v.b)return;sessionStorage.setItem("pm-upd",v.b);
 const r=await fetch("index.html",{cache:"reload"});if(!r.ok)return;
