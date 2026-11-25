@@ -2644,12 +2644,14 @@ load();
 })();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{});
-(function(){const B="f021ed3b9a";
+(function(){const B="f7521c43e3";
 async function chk(){try{const v=await fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json());
-if(!v||v.b===B||sessionStorage.getItem("pm-upd")===v.b)return;sessionStorage.setItem("pm-upd",v.b);
-const r=await fetch("index.html",{cache:"reload"});if(!r.ok)return;
-for(const k of await caches.keys()){const c=await caches.open(k);await c.put("index.html",r.clone());}
-if(!document.querySelector("#modal:not([hidden])"))location.reload();}catch(e){}}
+if(!v||v.b===B||sessionStorage.getItem("pm-upd")===v.b)return;
+const r=await fetch("index.html?v="+v.b,{cache:"reload"});if(!r.ok)return;const h=await r.text();
+if(!h.includes('const B="'+v.b+'"')){setTimeout(chk,60000);return;}
+sessionStorage.setItem("pm-upd",v.b);
+for(const k of await caches.keys()){const c=await caches.open(k);await c.put("index.html",new Response(h,{headers:{"Content-Type":"text/html; charset=utf-8"}}));}
+const go=()=>{if(document.querySelector("#modal:not([hidden])")){setTimeout(go,5000);return;}location.reload();};go();}catch(e){}}
 chk();document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")chk();});})();}</script>
 </body>
 </html>
