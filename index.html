@@ -479,6 +479,8 @@ a.plc{font-size:12px;color:var(--blue);text-decoration:none;white-space:nowrap;m
 .cal-d.mdg-over{background:rgba(59,91,219,.10)!important;box-shadow:inset 0 0 0 2px rgba(59,91,219,.45)}
 .ttcopy{position:relative}.ttcopy::after{content:'+ 복사';position:absolute;right:-6px;top:-9px;background:#2b8a3e;color:#fff;font-size:10.5px;font-weight:700;border-radius:999px;padding:1px 6px;box-shadow:0 2px 6px rgba(0,0,0,.18);white-space:nowrap}
 .toast.act{pointer-events:auto;display:flex;align-items:center;gap:12px}.toast-b{border:0;background:rgba(255,255,255,.18);color:#fff;font:inherit;font-size:13px;font-weight:700;border-radius:8px;padding:5px 10px;cursor:pointer;white-space:nowrap}.toast-b:hover{background:rgba(255,255,255,.28)}
+.ksub{margin-top:12px;background:#f7f8fb;border-radius:12px;padding:10px 12px}.ksub-it{display:flex;align-items:center;gap:8px;padding:5px 0}.ksub-it span{flex:1;min-width:0;font-size:14px}.ksub-it.dn span{color:var(--mute);text-decoration:line-through}.ksub-it .ck{flex:none;margin:0}.ksub-add{margin-top:6px;font-size:14px;padding:8px 10px}
+.tk-sub{font-style:normal;font-weight:600;font-size:10.5px;opacity:.75;margin-left:5px}
 .ai-btn:hover{background:linear-gradient(135deg,#e3e9ff,#ece3ff)}
 .spark{color:#6d5ae6;font-size:15px}.spin{display:inline-block;animation:spk 1.2s linear infinite}@keyframes spk{to{transform:rotate(360deg)}}
 .ai-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}.ai-tools .f{flex:1;min-width:160px}
@@ -1407,10 +1409,10 @@ function vWeekTT(){
     const items=[];
     blocksOn(dk).forEach(b=>{const cat=catOf(b.c);items.push({kind:'b',id:b.id,t:b.t,p:b.p||'',rt:ruleText(b.r,b.until),cat,s:b.s,e:b.e,s0:toMin(b.s),e0:toMin(b.e)});tot[cat]=(tot[cat]||0)+toMin(b.e)-toMin(b.s);});
     evs.filter(e=>e.tm).forEach(e=>{const cat=evCat(e);const s0=toMin(e.tm);let e0=e.te?toMin(e.te):s0+60;if(e0<=s0)e0=s0+60;items.push({kind:'e',id:e.id,memo:e.memo||'',p:e.p||'',t:e.t,cat,s:e.tm,e:e.te||'',s0,e0,dk});tot[cat]=(tot[cat]||0)+e0-s0;});
-    (TD(dk)||{tasks:[]}).tasks.filter(t=>t.tm).forEach(t=>{const s0=toMin(t.tm);let e0=t.te?toMin(t.te):s0+60;if(e0<=s0)e0=s0+60;items.push({kind:'k',id:t.id,t:t.t,done:!!t.done,pri:t.pri||0,s:t.tm,e:t.te||fmtMin(e0),s0,e0,dk,cat:'mine'});});
+    (TD(dk)||{tasks:[]}).tasks.filter(t=>t.tm).forEach(t=>{const s0=toMin(t.tm);let e0=t.te?toMin(t.te):s0+60;if(e0<=s0)e0=s0+60;items.push({kind:'k',id:t.id,t:t.t,done:!!t.done,pri:t.pri||0,s:t.tm,e:t.te||fmtMin(e0),s0,e0,dk,cat:'mine',sn:(t.sub||[]).length,sd:(t.sub||[]).filter(z=>z.done).length});});
     layoutLanes(items);
     cols+=`<div class="tt-col ${isT?'today':''}" data-act="tt-col" data-d="${d}" data-dk="${dk}" style="height:${(HEND-HSTART)*48}px">${items.map(it=>{const c=ECATS[it.cat]||ECATS.mine;const s0=Math.max(it.s0,HSTART*60),e0=Math.min(it.e0,HEND*60);const top=(s0-HSTART*60)*PX,h=Math.max(18,(e0-s0)*PX-2);const w=100/it.n,l=it.lane*w;
-      if(it.kind==='k')return `<button class="tt-k ${it.done?'dn':''} ${it.pri?'tkpri':''}" data-act="tk-edit" data-kind="k" data-dk="${it.dk}" data-id="${it.id}" title="할 일 · ${esc(it.t)}" style="top:${top}px;height:${h}px;left:calc(${l}% + 2px);width:calc(${w}% - 4px)"><b><span class="tk-ck ${it.done?'on':''}" data-act="tk-ck" data-dk="${it.dk}" data-id="${it.id}" role="checkbox" aria-checked="${it.done}"></span>${it.pri?`<span class="tk-star">★${it.pri}</span>`:''}${esc(it.t)||'(할 일)'}</b>${h>30?`<small>${it.s}–${it.e}</small>`:''}<span class="rz"></span></button>`;
+      if(it.kind==='k')return `<button class="tt-k ${it.done?'dn':''} ${it.pri?'tkpri':''}" data-act="tk-edit" data-kind="k" data-dk="${it.dk}" data-id="${it.id}" title="할 일 · ${esc(it.t)}" style="top:${top}px;height:${h}px;left:calc(${l}% + 2px);width:calc(${w}% - 4px)"><b><span class="tk-ck ${it.done?'on':''}" data-act="tk-ck" data-dk="${it.dk}" data-id="${it.id}" role="checkbox" aria-checked="${it.done}"></span>${it.pri?`<span class="tk-star">★${it.pri}</span>`:''}${esc(it.t)||'(할 일)'}${it.sn?`<i class="tk-sub">${it.sd}/${it.sn}</i>`:''}</b>${h>30?`<small>${it.s}–${it.e}</small>`:''}<span class="rz"></span></button>`;
       if(it.kind==='b')return `<button class="tt-b" data-act="edit-block" data-kind="b" data-dk="${dk}" data-id="${it.id}" title="${esc(it.t+' · '+it.rt+(it.p?'\n📍 '+it.p:''))}" style="top:${top}px;height:${h}px;left:calc(${l}% + 2px);right:auto;width:calc(${w}% - 4px);background:${c[1]}33;border-color:${c[3]};color:#1b2333"><b><span class="rp">↻</span>${esc(it.t)}</b>${h>30?`<small>${it.s}–${it.e}</small>`:''}${h>46&&it.p?`<small class="pl">📍${esc(it.p)}</small>`:''}<span class="rz"></span></button>`;
       return `<button class="tt-e" data-act="ev-edit" data-kind="e" data-dk="${it.dk}" data-id="${it.id}" title="${esc(it.t+(it.p?'\n📍 '+it.p:'')+(it.memo?'\n'+it.memo:''))}" style="top:${top}px;height:${h}px;left:calc(${l}% + 2px);width:calc(${w}% - 4px);background:${c[1]}33;color:#1b2333;border-left:3px solid ${c[3]}"><b>${esc(it.t)}</b>${h>30?`<small>${it.s}${it.e?'–'+it.e:''}</small>`:''}${h>46&&it.p?`<small class="pl">📍${esc(it.p)}</small>`:''}<span class="rz"></span></button>`;}).join('')}</div>`;
   }
@@ -1994,13 +1996,15 @@ function taskModal(o){
    <h3>${isNew?'할 일 블럭 추가':'할 일 블럭'}</h3><p class="desc">일정 사이 남는 시간에 할 일을 놓아 두는 칸이에요. ‘오늘 할 일’ 목록과 이어져 있어요.</p>
    ${isNew?`<label class="l">할 일 목록에서 고르기 <small class="desc" style="font-weight:400">(여러 개 골라도 돼요)</small></label><div id="kList" class="chips"></div>`:''}
    <label class="l">${isNew?'또는 새로 적기':'할 일'}</label><input class="f" id="kT" value="${esc(t?t.t:(o.t||''))}" placeholder="예) 독백 대사 외우기, 프로필 메일 5곳 보내기" maxlength="80">
+   ${t?`<div class="ksub"><small class="desc">세부 할 일</small><div id="kSub"></div><input class="f ksub-add" id="kSubNew" placeholder="+ 세부 할 일 추가 (Enter)" maxlength="80"></div>`:''}
    <div style="margin-top:10px"><small class="desc">날짜</small>${dp('kD',dk)}</div>
    <div style="margin-top:8px"><small class="desc">시작 (비우면 ${isNew?'빈 시간에 알아서':'오전 7시'})</small>${tp('kS',tm,isNew?'자동':'07:00')}</div>
    <div style="margin-top:10px"><small class="desc">대략 얼마나 걸려요?</small><div class="dur-seg" id="kDur"></div></div>
    ${t?`<label class="row" style="margin-top:12px;gap:8px;cursor:pointer;font-size:14px"><input type="checkbox" id="kDone" ${t.done?'checked':''}> 완료했어요</label>`:''}
    <p class="err" id="kErr"></p>
    <div class="actions">${t?`<button class="btn danger left" data-act="k-del">삭제</button>${t.tm?'<button class="btn ghost" data-act="k-unsched" title="할 일 목록에는 남겨 두고 시간표에서만 빼요">시간표에서 빼기</button>':''}`:''}<button class="btn" data-act="m-cancel">취소</button><button class="btn primary" data-act="m-ok">${isNew?'추가':'저장'}</button></div>`,
-  {dk,id:o.id||null,pick:null,picks:[],dur:(t&&durOf(t))||60,
+  {dk,id:o.id||null,pick:null,picks:[],
+   subUI(){const box=$('#kSub');if(!box||!t)return;const L=t.sub||[];box.innerHTML=L.length?L.map(z=>`<div class="ksub-it ${z.done?'dn':''}"><button type="button" class="ck ${z.done?'on':''}" data-act="k-sck" data-sid="${z.id}" aria-label="완료"></button><span>${esc(z.t)||'(세부 할 일)'}</span><button type="button" class="td-ic" data-act="k-sdel" data-sid="${z.id}" title="지우기">×</button></div>`).join(''):'<p class="desc" style="margin:4px 0 0">아직 없어요.</p>';},dur:(t&&durOf(t))||60,
    durUI(){const box=$('#kDur');if(!box)return;const opts=[30,60,120];if(!opts.includes(this.dur))opts.push(this.dur);opts.sort((a,b)=>a-b);box.innerHTML=opts.map(m=>`<button type="button" class="${m===this.dur?'on':''}" data-act="k-dur" data-m="${m}">${fmtDur(m)}</button>`).join('')+(this.picks.length>1?'<small class="desc" style="margin:0 0 0 6px;align-self:center">고른 일마다 정해 둔 시간이 있으면 그걸 써요</small>':'');},
    kList(){const box=$('#kList');if(!box)return;const nd=$('#kD').value||dk;const dl=(TD(nd)||{tasks:[]}).tasks.filter(x=>!x.done&&!x.tm);const wmon=monOf(nd);const wl=(WK(wmon)||{tasks:[]}).tasks.filter(x=>!x.done&&!wkLink(wmon,x.id));const list=[...dl,...wl];
      const chip=x=>`<button class="chip ${this.picks.includes(x.id)?'on':''}" data-act="k-pick" data-id="${x.id}">${this.picks.includes(x.id)?(this.picks.indexOf(x.id)+1)+'. ':''}${esc(x.t)||'(제목 없음)'}</button>`;
@@ -2024,7 +2028,8 @@ function taskModal(o){
      else{task={id:uid(),t:title,done:false,pri:0,sub:[],open:false};TD(nd,true).tasks.push(task);}
      if(title)task.t=title;task.tm=s1;task.te=e1;task.dur=du;const dn=$('#kDone');if(dn)task.done=dn.checked;
      tdDirty(nd);render(true);toast(`할 일 블럭 · ${task.t} ${s1}–${e1}`);return true;}});
-  MODAL.durUI();if(isNew){MODAL.kList();setTimeout(()=>{const x=$('#kT');x&&!o.t&&x.focus();},40);}
+  MODAL.durUI();MODAL.subUI();const ksn=$('#kSubNew');if(ksn&&t)ksn.addEventListener('keydown',e=>{if(e.key!=='Enter'||e.isComposing)return;e.preventDefault();e.stopPropagation();const v=ksn.value.trim();if(!v)return;t.sub=t.sub||[];t.sub.push({id:uid(),t:v,done:false});ksn.value='';tdDirty(dk);MODAL.subUI();render(true);});
+  if(isNew){MODAL.kList();setTimeout(()=>{const x=$('#kT');x&&!o.t&&x.focus();},40);}
 }
 /* ---------- AI 비서 ---------- */
 let AIIMG=[];
@@ -2490,6 +2495,8 @@ const ACT={
  'tp-pick':t=>{const el=$('#'+t.dataset.for);tpClose();if(el)tpSet(el,t.dataset.v);},
  'dp-step':t=>{const inp=$('#'+t.dataset.for);if(!inp||!inp.value)return;inp.value=addDays(inp.value,+t.dataset.d);inp.dispatchEvent(new Event('change',{bubbles:true}));},
  'srch':()=>srModal(),
+ 'k-sck':t=>{const x=MODAL&&tdFind(MODAL.dk,MODAL.id);const z=x&&(x.sub||[]).find(q=>q.id===t.dataset.sid);if(!z)return;z.done=!z.done;tdDirty(MODAL.dk);MODAL.subUI();render(true);if(z.done&&x.sub.every(q=>q.done)&&!x.done)toast('세부 할 일을 모두 끝냈어요! 할 일도 끝났으면 체크해 주세요.');},
+ 'k-sdel':t=>{const x=MODAL&&tdFind(MODAL.dk,MODAL.id);if(!x)return;x.sub=(x.sub||[]).filter(q=>q.id!==t.dataset.sid);tdDirty(MODAL.dk);MODAL.subUI();render(true);},
  'cfg-copy':async()=>{const c=PWACFG();if(!c)return;const link=location.origin+location.pathname+'#k='+encodeURIComponent(c.k)+'&u='+encodeURIComponent(c.u);
    try{await navigator.clipboard.writeText(link);closeModal();toast('연결 링크를 복사했어요. 아이폰에서 바로 붙여 넣을 수 있어요.');}
    catch(e){openModal(`<h3>연결 링크</h3><p class="desc">아래 칸을 눌러 전체 선택 후 복사해 주세요. 남에게 보내지 마세요.</p><textarea class="f" rows="4" readonly onclick="this.select()">${esc(link)}</textarea><div class="actions"><button class="btn" data-act="m-cancel">닫기</button></div>`);}},
@@ -2507,7 +2514,7 @@ const ACT={
  'x-del':()=>MODAL&&MODAL.del&&MODAL.del(),
  tdd:t=>{UI.tdd=t.dataset.d;saveUI();render(true);},
  'td-ck':t=>{const dk=UI.tdd||TODAYK;const x=tdFind(dk,t.dataset.id);if(!x)return;x.done=!x.done;tdDirty(dk);render(true);},
- 'td-sck':t=>{const dk=UI.tdd||TODAYK;const x=tdFind(dk,t.dataset.id);const s0=x&&(x.sub||[]).find(z=>z.id===t.dataset.sid);if(!s0)return;s0.done=!s0.done;if(x.sub.length&&x.sub.every(z=>z.done)&&!x.done){x.done=true;toast('세부 항목을 모두 끝냈어요. 할 일도 완료로 표시했어요.');}tdDirty(dk);render(true);},
+ 'td-sck':t=>{const dk=UI.tdd||TODAYK;const x=tdFind(dk,t.dataset.id);const s0=x&&(x.sub||[]).find(z=>z.id===t.dataset.sid);if(!s0)return;s0.done=!s0.done;if(s0.done&&x.sub.length&&x.sub.every(z=>z.done)&&!x.done)toast('세부 할 일을 모두 끝냈어요! 할 일도 끝났으면 체크해 주세요.');tdDirty(dk);render(true);},
  'td-pri':t=>{const dk=UI.tdd||TODAYK;const d=TD(dk,true);const x=d.tasks.find(z=>z.id===t.dataset.id);if(!x)return;if(x.pri){const p=x.pri;x.pri=0;d.tasks.forEach(z=>{if(z.pri>p)z.pri--;});}else{const n=d.tasks.filter(z=>z.pri).length;if(n>=3){toast('Top 3가 꽉 찼어요. 하나를 먼저 빼 주세요.');return;}x.pri=n+1;}tdDirty(dk);render(true);},
  'td-open':t=>{const dk=UI.tdd||TODAYK;const x=tdFind(dk,t.dataset.id);if(!x)return;x.open=!x.open;tdDirty(dk);render(true);if(x.open)setTimeout(()=>{const i=$(`[data-addsub="${x.id}"]`);i&&i.focus();},0);},
  'td-del':t=>{const dk=UI.tdd||TODAYK;const d=TD(dk,true);const x=d.tasks.find(z=>z.id===t.dataset.id);if(!x)return;const p=x.pri;d.tasks=d.tasks.filter(z=>z!==x);if(p)d.tasks.forEach(z=>{if(z.pri>p)z.pri--;});tdDirty(dk);render(true);toast('지웠어요. Ctrl+Z로 되돌릴 수 있어요.');},
@@ -2652,7 +2659,7 @@ load();
 })();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{});
-(function(){const B="da1897387d";
+(function(){const B="13dbfed72b";
 async function chk(){try{const v=await fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json());
 if(!v||v.b===B||sessionStorage.getItem("pm-upd")===v.b)return;
 const r=await fetch("index.html?v="+v.b,{cache:"reload"});if(!r.ok)return;const h=await r.text();
