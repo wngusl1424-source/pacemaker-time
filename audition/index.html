@@ -942,6 +942,7 @@ button { font: inherit; }
       + '<button type="button" class="mitem" id="mSync">지금 동기화하기<span>↻</span></button>'
       + '<button type="button" class="mitem" id="mKey">AI 키 설정 (페이스메이커와 같은 키)<span>›</span></button>'
       + '<button type="button" class="mitem" id="mSetup">연결 다시 설정하기<span>›</span></button>'
+      + (c ? '<button type="button" class="mitem" id="mLink">연결 링크 복사 (사파리 앱·다른 기기용)<span>⧉</span></button>' : '')
       + '<a class="mitem" href="../" target="_blank" rel="noopener">페이스메이커 시간표 열기<span>↗</span></a></div>'
       + '<p class="note">' + (c ? '구글 시트와 연결돼 있어요. 페이스메이커와 같은 시트를 써요.' : '아직 연결 설정이 안 됐어요.') + '</p>'
       + '<p class="note" id="keyStat"></p><div id="keyBox" hidden><input class="search" id="akIn" type="password" autocomplete="off" placeholder="sk-ant-…" style="width:100%"><p class="err" id="akErr"></p><button type="button" class="btn" id="akSave">키 저장</button></div>',
@@ -950,6 +951,12 @@ button { font: inherit; }
   document.addEventListener('click', async e => {
     const t = e.target;
     if (t.closest('#mSync')) { $('#layer').innerHTML = ''; await pull(true); toast('최신 기록으로 맞췄어요.'); }
+    if (t.closest('#mLink')) {
+      const c = cfg(); if (!c) return;
+      const link = location.origin + location.pathname + '#k=' + encodeURIComponent(c.k) + '&u=' + encodeURIComponent(c.u);
+      try { await navigator.clipboard.writeText(link); toast('연결 링크를 복사했어요. 새로 연 앱의 연결 칸에 붙여넣으세요.'); }
+      catch (err) { toast('복사하지 못했어요. 다시 눌러 주세요.'); }
+    }
     if (t.closest('#mSetup')) { $('#layer').innerHTML = ''; state.dbState = 'setup'; render(); }
     if (t.closest('#mKey')) {
       $('#keyBox').hidden = false; $('#keyStat').textContent = '확인하는 중…';

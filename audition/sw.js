@@ -1,5 +1,5 @@
 // 오디션 노트 화면 파일만 저장해 두고, 인터넷이 될 땐 항상 새 화면을 받아요. 기록은 여기 저장하지 않아요.
-const V = 'an-app-v2';
+const V = 'an-app-v3';
 const ASSETS = ['./', 'index.html', 'manifest.webmanifest', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(V).then(c => c.addAll(ASSETS.map(u => new Request(u, { cache: 'reload' })))));
