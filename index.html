@@ -1948,7 +1948,7 @@ function aiKeyModal(){
 function pwaMenu(){const c=PWACFG();
   openModal(`<h3>메뉴</h3><div class="mlist">
     <a class="mitem" href="${PM_URL}" target="_blank" rel="noopener">페이스메이커 전체 열기 (만다라트 · 회고 등)<span>›</span></a>
-    ${STANDALONE()?'':'<button class="mitem" data-act="pwa-install">앱으로 설치 (바로가기 만들기)<span>⬇</span></button>'}<button class="mitem" data-act="sync-now">지금 동기화하기<span>↻</span></button><button class="mitem" data-act="ai-key">AI 키 설정<span>›</span></button><button class="mitem" data-act="setup-again">연결 다시 설정하기<span>›</span></button></div>
+    ${STANDALONE()?'':'<button class="mitem" data-act="pwa-install">앱으로 설치 (바로가기 만들기)<span>⬇</span></button>'}<button class="mitem" data-act="sync-now">지금 동기화하기<span>↻</span></button><button class="mitem" data-act="ai-key">AI 키 설정<span>›</span></button>${c?'<button class="mitem" data-act="cfg-copy">다른 기기 연결 링크 복사<span>⧉</span></button>':''}<button class="mitem" data-act="setup-again">연결 다시 설정하기<span>›</span></button></div>
     <p class="desc" style="margin-top:14px">${c?(SHEET_OK?'구글 시트와 연결돼 있어요. PC 페이스메이커와 같은 일정을 써요.':'구글 시트에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.'):'아직 연결 설정이 안 됐어요.'}</p>
     <div class="actions"><button class="btn" data-act="m-cancel">닫기</button></div>`,{});}
 function weekPicker(){const cur=UI.ttw||dKey(mondayOf(TODAY));const cy=+addDays(cur,3).slice(0,4);const years=[...new Set(CAL_MONTHS.map(k=>+k.slice(0,4)))];
@@ -2490,6 +2490,9 @@ const ACT={
  'tp-pick':t=>{const el=$('#'+t.dataset.for);tpClose();if(el)tpSet(el,t.dataset.v);},
  'dp-step':t=>{const inp=$('#'+t.dataset.for);if(!inp||!inp.value)return;inp.value=addDays(inp.value,+t.dataset.d);inp.dispatchEvent(new Event('change',{bubbles:true}));},
  'srch':()=>srModal(),
+ 'cfg-copy':async()=>{const c=PWACFG();if(!c)return;const link=location.origin+location.pathname+'#k='+encodeURIComponent(c.k)+'&u='+encodeURIComponent(c.u);
+   try{await navigator.clipboard.writeText(link);closeModal();toast('연결 링크를 복사했어요. 아이폰에서 바로 붙여 넣을 수 있어요.');}
+   catch(e){openModal(`<h3>연결 링크</h3><p class="desc">아래 칸을 눌러 전체 선택 후 복사해 주세요. 남에게 보내지 마세요.</p><textarea class="f" rows="4" readonly onclick="this.select()">${esc(link)}</textarea><div class="actions"><button class="btn" data-act="m-cancel">닫기</button></div>`);}},
  'bk-tog':()=>{UI.bkOpen=!UI.bkOpen;saveUI();render(true);},
  'bk-hide':()=>{UI.bkHide=TODAYK;UI.bkOpen=false;saveUI();render(true);toast('오늘은 숨겨 둘게요. 내일 다시 보여 드려요.');},
  'bk-show':()=>{delete UI.bkHide;UI.bkOpen=true;saveUI();render(true);},
@@ -2649,7 +2652,7 @@ load();
 })();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{});
-(function(){const B="e80438c9c4";
+(function(){const B="da1897387d";
 async function chk(){try{const v=await fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json());
 if(!v||v.b===B||sessionStorage.getItem("pm-upd")===v.b)return;
 const r=await fetch("index.html?v="+v.b,{cache:"reload"});if(!r.ok)return;const h=await r.text();
