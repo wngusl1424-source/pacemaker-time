@@ -826,6 +826,7 @@ const hasContent=()=>S.core.center||S.core.goals.some(g=>g.title||g.items.some(B
 
 let UI={tab:'today',exec:'month',month:NOWM,goal:0,rev:'w',week:CURWEEK,rmonth:NOWM,tt:'week',ttw:dKey(mondayOf(TODAY)),cmonth:CAL_MONTHS.includes(TODAYM)?TODAYM:NOWM};
 try{const u=JSON.parse(localStorage.getItem('pm2027-ui')||'null');if(u)UI=Object.assign(UI,u);}catch(e){}
+/* 앱을 열 때마다 '오늘' 기준으로 시작 */UI.ttw=dKey(mondayOf(TODAY));if(CAL_MONTHS.includes(TODAYM))UI.cmonth=TODAYM;delete UI.tdd;UI.week=CURWEEK;
 const saveUI=()=>{try{localStorage.setItem('pm2027-ui',JSON.stringify(UI));}catch(e){}};
 
 /* ---------- persistence ---------- */
@@ -2510,6 +2511,8 @@ document.addEventListener('click',e=>{
   const f=ACT[t.dataset.act];if(f){f(t,e);}
 });
 document.addEventListener('paste',e=>{if(!$('#aiT'))return;const items=[...(e.clipboardData&&e.clipboardData.items||[])].filter(i=>i.type.startsWith('image/'));if(!items.length)return;e.preventDefault();Promise.all(items.map(i=>shrinkImg(i.getAsFile()))).then(bs=>{AIIMG=AIIMG.concat(bs).slice(0,4);aiThumbs();toast('캡처를 붙였어요.');});});
+(function(){const chk=()=>{if(document.visibilityState!=='visible')return;if(dKey(new Date())===TODAYK)return;const busy=document.querySelector('.modal')||(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName)&&document.activeElement.value);if(busy)return;try{const u=JSON.parse(localStorage.getItem('pm2027-ui')||'{}');delete u.ttw;delete u.tdd;delete u.cmonth;localStorage.setItem('pm2027-ui',JSON.stringify(u));}catch(_){}location.reload();};
+  document.addEventListener('visibilitychange',chk);window.addEventListener('focus',chk);setInterval(chk,60000);})();
 document.addEventListener('focusout',e=>{if(e.target&&e.target.id==='iT')setTimeout(()=>{const b=$('#iSug');if(b&&!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#iSug')))b.hidden=true;},180);});
 document.addEventListener('keydown',e=>{const sb=$('#iSug');if(sb&&!sb.hidden&&e.target&&e.target.id==='iT'){if(e.key==='Escape'){sb.hidden=true;e.preventDefault();e.stopImmediatePropagation();return;}if(e.key==='ArrowDown'){const f=sb.querySelector('.sug-it');f&&f.focus();e.preventDefault();return;}}
   if(e.target&&e.target.classList&&e.target.classList.contains('sug-it')&&(e.key==='ArrowDown'||e.key==='ArrowUp')){const n=e.key==='ArrowDown'?e.target.nextElementSibling:e.target.previousElementSibling;if(n&&n.classList.contains('sug-it'))n.focus();else if(e.key==='ArrowUp')$('#iT').focus();e.preventDefault();return;}},true);
@@ -2587,7 +2590,7 @@ load();
 })();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{});
-(function(){const B="e9bee75e3e";
+(function(){const B="fe6106c3a8";
 async function chk(){try{const v=await fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json());
 if(!v||v.b===B||sessionStorage.getItem("pm-upd")===v.b)return;sessionStorage.setItem("pm-upd",v.b);
 const r=await fetch("index.html",{cache:"reload"});if(!r.ok)return;
