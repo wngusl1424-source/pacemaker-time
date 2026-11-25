@@ -479,7 +479,7 @@ a.plc{font-size:12px;color:var(--blue);text-decoration:none;white-space:nowrap;m
 .cal-d.mdg-over{background:rgba(59,91,219,.10)!important;box-shadow:inset 0 0 0 2px rgba(59,91,219,.45)}
 .ttcopy{position:relative}.ttcopy::after{content:'+ 복사';position:absolute;right:-6px;top:-9px;background:#2b8a3e;color:#fff;font-size:10.5px;font-weight:700;border-radius:999px;padding:1px 6px;box-shadow:0 2px 6px rgba(0,0,0,.18);white-space:nowrap}
 .toast.act{pointer-events:auto;display:flex;align-items:center;gap:12px}.toast-b{border:0;background:rgba(255,255,255,.18);color:#fff;font:inherit;font-size:13px;font-weight:700;border-radius:8px;padding:5px 10px;cursor:pointer;white-space:nowrap}.toast-b:hover{background:rgba(255,255,255,.28)}
-.ksub{margin-top:12px;background:#f7f8fb;border-radius:12px;padding:10px 12px}.ksub-it{display:flex;align-items:center;gap:8px;padding:5px 0}.ksub-it span{flex:1;min-width:0;font-size:14px}.ksub-it.dn span{color:var(--mute);text-decoration:line-through}.ksub-it .ck{flex:none;margin:0}.ksub-add{margin-top:6px;font-size:14px;padding:8px 10px}
+.ksub{margin-top:12px;background:#f7f8fb;border-radius:12px;padding:10px 12px}.ksub-it{display:flex;align-items:center;gap:8px;padding:5px 0}.ksub-in{flex:1;min-width:0;font:inherit;font-size:14px;border:0;background:transparent;padding:4px 2px;border-bottom:1px solid transparent;color:inherit}.ksub-in:focus{outline:0;border-bottom-color:var(--blue)}.ksub-it.dn .ksub-in{color:var(--mute);text-decoration:line-through}.ksub-it .ck{flex:none;margin:0}.ksub-add{margin-top:6px;font-size:14px;padding:8px 10px}
 .tk-sub{font-style:normal;font-weight:600;font-size:10.5px;opacity:.75;margin-left:5px}
 .ai-btn:hover{background:linear-gradient(135deg,#e3e9ff,#ece3ff)}
 .spark{color:#6d5ae6;font-size:15px}.spin{display:inline-block;animation:spk 1.2s linear infinite}@keyframes spk{to{transform:rotate(360deg)}}
@@ -2004,7 +2004,7 @@ function taskModal(o){
    <p class="err" id="kErr"></p>
    <div class="actions">${t?`<button class="btn danger left" data-act="k-del">삭제</button>${t.tm?'<button class="btn ghost" data-act="k-unsched" title="할 일 목록에는 남겨 두고 시간표에서만 빼요">시간표에서 빼기</button>':''}`:''}<button class="btn" data-act="m-cancel">취소</button><button class="btn primary" data-act="m-ok">${isNew?'추가':'저장'}</button></div>`,
   {dk,id:o.id||null,pick:null,picks:[],
-   subUI(){const box=$('#kSub');if(!box||!t)return;const L=t.sub||[];box.innerHTML=L.length?L.map(z=>`<div class="ksub-it ${z.done?'dn':''}"><button type="button" class="ck ${z.done?'on':''}" data-act="k-sck" data-sid="${z.id}" aria-label="완료"></button><span>${esc(z.t)||'(세부 할 일)'}</span><button type="button" class="td-ic" data-act="k-sdel" data-sid="${z.id}" title="지우기">×</button></div>`).join(''):'<p class="desc" style="margin:4px 0 0">아직 없어요.</p>';},dur:(t&&durOf(t))||60,
+   subUI(){const box=$('#kSub');const tt=box&&this.id&&tdFind(this.dk,this.id);if(!tt)return;const L=tt.sub||[];box.innerHTML=L.length?L.map(z=>`<div class="ksub-it ${z.done?'dn':''}"><button type="button" class="ck ${z.done?'on':''}" data-act="k-sck" data-sid="${z.id}" aria-label="완료"></button><input class="ksub-in" data-td="${this.dk}|${tt.id}|${z.id}|t" value="${esc(z.t)}" placeholder="세부 할 일" maxlength="80"><button type="button" class="td-ic" data-act="k-sdel" data-sid="${z.id}" title="지우기">×</button></div>`).join(''):'<p class="desc" style="margin:4px 0 0">아직 없어요.</p>';},dur:(t&&durOf(t))||60,
    durUI(){const box=$('#kDur');if(!box)return;const opts=[30,60,120];if(!opts.includes(this.dur))opts.push(this.dur);opts.sort((a,b)=>a-b);box.innerHTML=opts.map(m=>`<button type="button" class="${m===this.dur?'on':''}" data-act="k-dur" data-m="${m}">${fmtDur(m)}</button>`).join('')+(this.picks.length>1?'<small class="desc" style="margin:0 0 0 6px;align-self:center">고른 일마다 정해 둔 시간이 있으면 그걸 써요</small>':'');},
    kList(){const box=$('#kList');if(!box)return;const nd=$('#kD').value||dk;const dl=(TD(nd)||{tasks:[]}).tasks.filter(x=>!x.done&&!x.tm);const wmon=monOf(nd);const wl=(WK(wmon)||{tasks:[]}).tasks.filter(x=>!x.done&&!wkLink(wmon,x.id));const list=[...dl,...wl];
      const chip=x=>`<button class="chip ${this.picks.includes(x.id)?'on':''}" data-act="k-pick" data-id="${x.id}">${this.picks.includes(x.id)?(this.picks.indexOf(x.id)+1)+'. ':''}${esc(x.t)||'(제목 없음)'}</button>`;
@@ -2028,7 +2028,7 @@ function taskModal(o){
      else{task={id:uid(),t:title,done:false,pri:0,sub:[],open:false};TD(nd,true).tasks.push(task);}
      if(title)task.t=title;task.tm=s1;task.te=e1;task.dur=du;const dn=$('#kDone');if(dn)task.done=dn.checked;
      tdDirty(nd);render(true);toast(`할 일 블럭 · ${task.t} ${s1}–${e1}`);return true;}});
-  MODAL.durUI();MODAL.subUI();const ksn=$('#kSubNew');if(ksn&&t)ksn.addEventListener('keydown',e=>{if(e.key!=='Enter'||e.isComposing)return;e.preventDefault();e.stopPropagation();const v=ksn.value.trim();if(!v)return;t.sub=t.sub||[];t.sub.push({id:uid(),t:v,done:false});ksn.value='';tdDirty(dk);MODAL.subUI();render(true);});
+  MODAL.durUI();MODAL.subUI();const ksn=$('#kSubNew');if(ksn&&t)ksn.addEventListener('keydown',e=>{if(e.key!=='Enter'||e.isComposing)return;e.preventDefault();e.stopPropagation();const v=ksn.value.trim();if(!v||!MODAL)return;const tt=tdFind(MODAL.dk,MODAL.id);if(!tt)return;tt.sub=tt.sub||[];tt.sub.push({id:uid(),t:v,done:false});ksn.value='';tdDirty(MODAL.dk);MODAL.subUI();render(true);});
   if(isNew){MODAL.kList();setTimeout(()=>{const x=$('#kT');x&&!o.t&&x.focus();},40);}
 }
 /* ---------- AI 비서 ---------- */
@@ -2583,7 +2583,7 @@ document.addEventListener('paste',e=>{if(!$('#aiT'))return;const items=[...(e.cl
 (function(){const chk=()=>{if(document.visibilityState!=='visible')return;if(dKey(new Date())===TODAYK)return;const busy=document.querySelector('.modal')||(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName)&&document.activeElement.value);if(busy)return;try{const u=JSON.parse(localStorage.getItem('pm2027-ui')||'{}');delete u.ttw;delete u.tdd;delete u.cmonth;localStorage.setItem('pm2027-ui',JSON.stringify(u));}catch(_){}location.reload();};
   document.addEventListener('visibilitychange',chk);window.addEventListener('focus',chk);setInterval(chk,60000);})();
 document.addEventListener('focusout',e=>{if(e.target&&e.target.id==='iT')setTimeout(()=>{const b=$('#iSug');if(b&&!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#iSug')))b.hidden=true;},180);});
-document.addEventListener('keydown',e=>{const sb=$('#iSug');if(sb&&!sb.hidden&&e.target&&e.target.id==='iT'){if(e.key==='Escape'){sb.hidden=true;e.preventDefault();e.stopImmediatePropagation();return;}if(e.key==='ArrowDown'){const f=sb.querySelector('.sug-it');f&&f.focus();e.preventDefault();return;}}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing&&e.target&&e.target.classList&&e.target.classList.contains('ksub-in')){e.preventDefault();e.stopImmediatePropagation();const n=$('#kSubNew');n&&n.focus();return;}const sb=$('#iSug');if(sb&&!sb.hidden&&e.target&&e.target.id==='iT'){if(e.key==='Escape'){sb.hidden=true;e.preventDefault();e.stopImmediatePropagation();return;}if(e.key==='ArrowDown'){const f=sb.querySelector('.sug-it');f&&f.focus();e.preventDefault();return;}}
   if(e.target&&e.target.classList&&e.target.classList.contains('sug-it')&&(e.key==='ArrowDown'||e.key==='ArrowUp')){const n=e.key==='ArrowDown'?e.target.nextElementSibling:e.target.previousElementSibling;if(n&&n.classList.contains('sug-it'))n.focus();else if(e.key==='ArrowUp')$('#iT').focus();e.preventDefault();return;}},true);
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&e.target.id==='nhName'){e.preventDefault();const b=$('[data-act="add-habit"]');b&&b.click();}
@@ -2659,7 +2659,7 @@ load();
 })();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{});
-(function(){const B="13dbfed72b";
+(function(){const B="a3d1eb32ab";
 async function chk(){try{const v=await fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json());
 if(!v||v.b===B||sessionStorage.getItem("pm-upd")===v.b)return;
 const r=await fetch("index.html?v="+v.b,{cache:"reload"});if(!r.ok)return;const h=await r.text();
