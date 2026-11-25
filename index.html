@@ -467,6 +467,12 @@ a.plc{font-size:12px;color:var(--blue);text-decoration:none;white-space:nowrap;m
 .sug-wrap{position:relative}.sug{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:5;background:#fff;border:1px solid var(--line2);border-radius:12px;box-shadow:0 12px 30px rgba(14,27,61,.14);padding:4px;max-height:300px;overflow:auto}
 .sug-h{font-size:11.5px;color:var(--mute);padding:6px 10px 4px}.sug-it{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;font:inherit;text-align:left;padding:8px 10px;border-radius:9px;cursor:pointer;color:inherit}.sug-it:hover,.sug-it:focus{background:#f2f5fb;outline:0}
 .sug-it>i{flex:none;width:8px;height:8px;border-radius:50%}.sug-t{flex:1;min-width:0}.sug-t b{display:block;font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sug-t small{display:block;font-size:12px;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sug-n{flex:none;font-size:11.5px;color:var(--mute)}
+.bk{min-width:0;max-width:100%;box-sizing:border-box;border:1px solid #e3ead6;background:#f7faf2;border-radius:16px;margin-bottom:14px;overflow:hidden}
+.bk-head{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;font:inherit;text-align:left;padding:12px 14px;cursor:pointer;color:inherit}.bk-ic{font-size:18px}.bk-ti{flex:1;min-width:0}.bk-ti b{display:block;font-size:14.5px}.bk-ti small{display:block;color:var(--mute);font-size:12px;margin-top:1px}.bk-tg{font-size:12.5px;color:#5c7a2e;font-weight:600;white-space:nowrap}
+.bk-list{padding:0 10px}.bk-it{display:flex;align-items:center;gap:8px;padding:7px 4px;border-top:1px solid #e8eedf}.bk-age{flex:none;font-size:11.5px;font-weight:700;color:#6b7f4a;background:#e9f1dc;border-radius:999px;padding:2px 8px;min-width:46px;text-align:center}.bk-age.mid{color:#b06a00;background:#fff1d6}.bk-age.old{color:#c2410c;background:#ffe4d6}
+.bk-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}.bk-t small{color:var(--mute)}.bk-it .btn{flex:none}
+.bk-note{margin:6px 14px 0;font-size:12.5px}.bk-foot{display:flex;align-items:center;padding:10px 14px 12px}.lnk{border:0;background:none;font:inherit;font-size:12.5px;color:var(--mute);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:4px}
+.bk-mini{margin:-4px 0 10px;text-align:right}
 .ai-btn:hover{background:linear-gradient(135deg,#e3e9ff,#ece3ff)}
 .spark{color:#6d5ae6;font-size:15px}.spin{display:inline-block;animation:spk 1.2s linear infinite}@keyframes spk{to{transform:rotate(360deg)}}
 .ai-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}.ai-tools .f{flex:1;min-width:160px}
@@ -659,6 +665,7 @@ a.plc{font-size:12px;color:var(--blue);text-decoration:none;white-space:nowrap;m
   .cm-row{grid-template-columns:32px minmax(0,1fr) auto}.cm-u{display:none}
 }
 @media(max-width:760px){#modal:has(.sr-modal){place-items:start center}.modal.sr-modal{height:100dvh;max-height:100dvh;border-radius:0;padding:calc(12px + env(safe-area-inset-top)) 14px 0;animation:none;display:flex;flex-direction:column}.sr-modal .sr-res{max-height:none;flex:1;padding-bottom:calc(20px + env(safe-area-inset-bottom))}}
+@media(max-width:760px){.bk-it{gap:6px}.bk-it .btn.sm{padding:5px 9px;font-size:12.5px}.bk-it .btn.ghost{padding:5px 4px}.bk-age{min-width:0}}
 </style>
 </head>
 <body>
@@ -2303,7 +2310,13 @@ function vTodo(){
   const dk=UI.tdd||TODAYK;const d=TD(dk)||{memo:'',tasks:[]};const dt=parseD(dk);
   const tasks=d.tasks;const top=tasks.filter(t=>t.pri).sort((a,b)=>a.pri-b.pri);
   const done=tasks.filter(t=>t.done).length;
-  const pk=prevTodoDay(dk);const carry=pk?TD(pk).tasks.filter(t=>!t.done&&!t.carried).length:0;
+  const pk=prevTodoDay(dk);const carry=0;
+  const bk=dk===TODAYK?backlog(dk):[];const bkOld=bk.length?Math.max(...bk.map(x=>x.age)):0;
+  const bkCard=!bk.length?'':UI.bkHide===TODAYK?`<div class="bk-mini"><button class="lnk" data-act="bk-show">밀린 할 일 ${bk.length}개 · 오늘은 숨겨 뒀어요 · 다시 보기</button></div>`:
+   `<div class="bk ${UI.bkOpen?'open':''}"><button class="bk-head" data-act="bk-tog"><span class="bk-ic">🌱</span><span class="bk-ti"><b>밀린 할 일 ${bk.length}개</b><small>최근 2주 동안 못 끝낸 일 · 가장 오래된 건 ${bkOld===1?'어제':bkOld+'일 전'}</small></span><span class="bk-tg">${UI.bkOpen?'접기 ▴':'펼치기 ▾'}</span></button>
+    ${UI.bkOpen?`<div class="bk-list">${bk.map(x=>`<div class="bk-it"><span class="bk-age ${x.age>=7?'old':x.age>=3?'mid':''}">${x.age===1?'어제':x.age+'일 전'}</span><span class="bk-t" title="${esc(x.t.t)}">${esc(x.t.t)}${(x.t.sub||[]).length?` <small>${(x.t.sub||[]).filter(z=>z.done).length}/${x.t.sub.length}</small>`:''}</span><button class="btn sm" data-act="bk-in" data-dk="${x.dk}" data-id="${x.t.id}">오늘로</button><button class="btn sm ghost" data-act="bk-drop" data-dk="${x.dk}" data-id="${x.t.id}" title="안 해도 되는 일이면 목록에서 내려놓아요">놓아주기</button></div>`).join('')}</div>
+    ${bkOld>=7?'<p class="desc bk-note">일주일 넘게 밀린 일은 지금도 꼭 필요한지 한 번 봐 주세요. 2주가 지나면 이 목록에서 저절로 빠져요.</p>':''}
+    <div class="bk-foot"><button class="btn sm" data-act="bk-all">모두 오늘로</button><span class="sp"></span><button class="lnk" data-act="bk-hide">오늘은 그만 보기</button></div>`:''}</div>`;
   const row=t=>{const sd=(t.sub||[]).filter(x=>x.done).length,sn=(t.sub||[]).length;return `<div class="td ${t.done?'dn':''}" data-tid="${t.id}">
     <div class="td-main"><span class="tdg" data-src="day" data-dk="${dk}" data-id="${t.id}" title="끌어서 다른 요일·이번 주 할 일로">⋮⋮</span><button class="ck ${t.done?'on':''}" data-act="td-ck" data-id="${t.id}" aria-label="완료"></button>
       <input class="td-in" data-td="${dk}|${t.id}||t" value="${esc(t.t)}" placeholder="할 일">
@@ -2336,6 +2349,7 @@ function vTodo(){
       <div class="card"><h3>${dk===TODAYK?'오늘의':`${dt.getMonth()+1}/${dt.getDate()}`} Top 3</h3><p class="desc">오늘 딱 이것만은. 할 일 옆 ☆을 눌러 순서대로 1~3을 정하고, ⋮⋮을 끌어 순서를 바꿔요.</p>
         ${top.length?`<div class="top3" data-dk="${dk}">${top.map(t=>`<div class="t3 ${t.done?'dn':''}" data-tid="${t.id}">${top.length>1?'<span class="t3g" title="끌어서 순서 바꾸기">⋮⋮</span>':''}<span class="t3n">${t.pri}</span><button class="ck ${t.done?'on':''}" data-act="td-ck" data-id="${t.id}"></button><span class="t3t">${esc(t.t)||'(제목 없음)'}</span>${(t.sub||[]).length?`<span class="td-cnt">${t.sub.filter(x=>x.done).length}/${t.sub.length}</span>`:''}</div>`).join('')}</div>`:'<p class="desc" style="margin:0;color:var(--mute)">아직 정하지 않았어요.</p>'}
       </div>
+      ${bkCard}
       <div class="card"><div class="row"><h3>${dk===TODAYK?'오늘 할 일':`${dt.getMonth()+1}/${dt.getDate()} (${WD[dt.getDay()]}) 할 일`}</h3><span class="sp"></span>${carry?`<button class="btn sm" data-act="td-carry" data-from="${pk}">${parseD(pk).getMonth()+1}/${parseD(pk).getDate()} 못 끝낸 일 ${carry}개 옮겨오기</button>`:''}</div>
         <div class="tdl">${tasks.map(row).join('')||'<p class="desc">아직 할 일이 없어요. 아래에 적고 Enter를 누르세요.</p>'}</div>
         <div class="td-addrow"><input class="f td-add" id="tdNew" placeholder="+ 할 일 추가 (Enter) — 예) 이번 주말 에이전시 투어 준비"><div class="dur-seg sm">${[30,60,120].map(m=>`<button type="button" class="${UI.tdur===m?'on':''}" data-act="tdur" data-m="${m}">${fmtDur(m)}</button>`).join('')}</div></div>
@@ -2349,6 +2363,10 @@ function vTodo(){
   </div>`;
 }
 function tdFind(dk,id){const d=TD(dk,true);return d.tasks.find(t=>t.id===id);}
+const BKDAYS=14;
+function backlog(dk){const out=[];for(let i=1;i<=BKDAYS;i++){const k=addDays(dk,-i);const d=TD(k);if(!d||!Array.isArray(d.tasks))continue;d.tasks.forEach(t=>{if(!t.done&&!t.carried&&!t.drop&&(t.t||'').trim())out.push({dk:k,t,age:i});});}return out;}
+function bkMove(from,id,to){const src=TD(from,true);const x=src.tasks.find(z=>z.id===id);if(!x)return 0;const d=TD(to,true);src.tasks=src.tasks.filter(z=>z!==x);renumPri(src);tdDirty(from);
+  const nm=(x.t||'').trim();if(d.tasks.some(z=>(z.t||'').trim()===nm&&!z.done)){tdDirty(to);return 2;}unsched(x);x.pri=0;delete x.carried;x.from=x.from||from;d.tasks.push(x);tdDirty(to);return 1;}
 function tdAdd(text){const dk=UI.tdd||TODAYK;const d=TD(dk,true);const nt0={id:uid(),t:text,done:false,pri:0,sub:[],open:false};if(UI.tdur)nt0.dur=UI.tdur;d.tasks.push(nt0);const ti=$('#tdNew');if(ti)ti.value='';tdDirty(dk);render(true);setTimeout(()=>{const x=$('#tdNew');x&&x.focus();},0);}
 function tdAddSub(tid,text){const dk=UI.tdd||TODAYK;const t=tdFind(dk,tid);if(!t)return;t.sub=t.sub||[];t.sub.push({id:uid(),t:text,done:false});tdDirty(dk);render(true);setTimeout(()=>{const x=$(`[data-addsub="${tid}"]`);x&&x.focus();},0);}
 
@@ -2437,6 +2455,12 @@ const ACT={
  'tp-pick':t=>{const el=$('#'+t.dataset.for);tpClose();if(el)tpSet(el,t.dataset.v);},
  'dp-step':t=>{const inp=$('#'+t.dataset.for);if(!inp||!inp.value)return;inp.value=addDays(inp.value,+t.dataset.d);inp.dispatchEvent(new Event('change',{bubbles:true}));},
  'srch':()=>srModal(),
+ 'bk-tog':()=>{UI.bkOpen=!UI.bkOpen;saveUI();render(true);},
+ 'bk-hide':()=>{UI.bkHide=TODAYK;UI.bkOpen=false;saveUI();render(true);toast('오늘은 숨겨 둘게요. 내일 다시 보여 드려요.');},
+ 'bk-show':()=>{delete UI.bkHide;UI.bkOpen=true;saveUI();render(true);},
+ 'bk-in':t=>{const r=bkMove(t.dataset.dk,t.dataset.id,TODAYK);render(true);toast(r===2?'오늘에 같은 일이 있어서 하나로 합쳤어요.':'오늘 할 일로 옮겼어요.');},
+ 'bk-all':()=>{let n=0;backlog(TODAYK).forEach(x=>{if(bkMove(x.dk,x.t.id,TODAYK))n++;});UI.bkOpen=false;saveUI();render(true);toast(`밀린 할 일 ${n}개를 오늘로 옮겼어요.`);},
+ 'bk-drop':t=>{const x=tdFind(t.dataset.dk,t.dataset.id);if(!x)return;x.drop=true;tdDirty(t.dataset.dk);render(true);toast('내려놓았어요. 그날 기록에는 남아 있어요.');},
  'sug-pick':t=>sugPick(+t.dataset.i),
  'i-dup':()=>{const v=MODAL&&MODAL.collect&&MODAL.collect();if(!v)return;closeModal();itemModal({kind:'new',dk:v.nd,pre:v});},
  'sr-open':t=>{const dk=t.dataset.dk,id=t.dataset.id;closeModal();srJump(dk);itemModal({kind:'ev',dk,id});},
@@ -2590,7 +2614,7 @@ load();
 })();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{});
-(function(){const B="fe6106c3a8";
+(function(){const B="9b07378e5f";
 async function chk(){try{const v=await fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json());
 if(!v||v.b===B||sessionStorage.getItem("pm-upd")===v.b)return;sessionStorage.setItem("pm-upd",v.b);
 const r=await fetch("index.html",{cache:"reload"});if(!r.ok)return;
