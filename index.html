@@ -481,6 +481,7 @@ a.plc{font-size:12px;color:var(--blue);text-decoration:none;white-space:nowrap;m
 .toast.act{pointer-events:auto;display:flex;align-items:center;gap:12px}.toast-b{border:0;background:rgba(255,255,255,.18);color:#fff;font:inherit;font-size:13px;font-weight:700;border-radius:8px;padding:5px 10px;cursor:pointer;white-space:nowrap}.toast-b:hover{background:rgba(255,255,255,.28)}
 .ksub{margin-top:12px;background:#f7f8fb;border-radius:12px;padding:10px 12px}.ksub-it{display:flex;align-items:center;gap:8px;padding:5px 0}.ksub-in{flex:1;min-width:0;font:inherit;font-size:14px;border:0;background:transparent;padding:4px 2px;border-bottom:1px solid transparent;color:inherit}.ksub-in:focus{outline:0;border-bottom-color:var(--blue)}.ksub-it.dn .ksub-in{color:var(--mute);text-decoration:line-through}.ksub-it .ck{flex:none;margin:0}.ksub-add{margin-top:6px;font-size:14px;padding:8px 10px}
 .tk-sub{font-style:normal;font-weight:600;font-size:10.5px;opacity:.75;margin-left:5px}
+.ai-txt{gap:8px;font-size:13.5px;margin:10px 0 2px;cursor:pointer;color:var(--sub)}.ai-txt small{color:var(--mute)}
 .ai-btn:hover{background:linear-gradient(135deg,#e3e9ff,#ece3ff)}
 .spark{color:#6d5ae6;font-size:15px}.spin{display:inline-block;animation:spk 1.2s linear infinite}@keyframes spk{to{transform:rotate(360deg)}}
 .ai-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}.ai-tools .f{flex:1;min-width:160px}
@@ -2062,13 +2063,14 @@ ${linkText?`\n[링크에서 가져온 내용]\n${linkText.slice(0,12000)}`:''}
 - 카테고리는 위 목록의 key 중 가장 알맞은 것으로. 모르면 "mine".
 - '할 일', '해야 할 것'은 add_task로. 일정 수정·삭제 요청은 기존 일정의 id를 써서 update_event/delete_event로.
 - 매주·매달처럼 반복이면 add_repeat로.
+- 사용자가 '월간 캘린더에 종일 표시 해제', '글자로만', '막대 말고 글자로' 같은 말을 하면 시간이 있는 add_event에 "text_only":true. 그런 말이 없으면 false. update_event로 바꿔 달라고 하면 changes에 "text_only":true/false.
 - 지어내지 마. 확실하지 않으면 actions는 비우고 reply에 무엇이 필요한지 짧게 물어봐.
 답 형식(JSON만):
 {"reply":"한두 문장 한국어 요약","actions":[
- {"op":"add_event","date":"YYYY-MM-DD","end_date":"","title":"","allday":false,"start":"HH:MM","end":"HH:MM","place":"","memo":"","cat":"key"},
+ {"op":"add_event","date":"YYYY-MM-DD","end_date":"","title":"","allday":false,"start":"HH:MM","end":"HH:MM","place":"","memo":"","cat":"key","text_only":false},
  {"op":"add_task","date":"YYYY-MM-DD","title":"","start":"","end":""},
  {"op":"add_repeat","title":"","freq":"d|w|m|y","interval":1,"weekdays":[0],"from":"YYYY-MM-DD","until":"","start":"HH:MM","end":"HH:MM","place":"","cat":"key"},
- {"op":"update_event","date":"YYYY-MM-DD","id":"","changes":{"title":"","date":"","start":"","end":"","allday":false,"place":"","memo":"","cat":""}},
+ {"op":"update_event","date":"YYYY-MM-DD","id":"","changes":{"title":"","date":"","start":"","end":"","allday":false,"place":"","memo":"","cat":"","text_only":null}},
  {"op":"delete_event","date":"YYYY-MM-DD","id":""}]}
 weekdays는 월=0 … 일=6.`;}
 async function aiCall(prompt,images){
@@ -2104,16 +2106,16 @@ async function aiRun(){
   $('#aiErr').textContent='';$('#aiOut').innerHTML='<div class="ai-wait"><span class="spark spin">✦</span> 살펴보는 중이에요…</div>';$('#aiAct').querySelector('[data-act="ai-run"]').disabled=true;
   try{let lt='';if(url){lt=await aiFetchLink(url);}
     const res=await aiCall(aiPrompt(text,lt),AIIMG);const acts=(res&&Array.isArray(res.actions)?res.actions:[]).filter(a=>a&&a.op);
-    MODAL.acts=acts;
-    $('#aiOut').innerHTML=`<div class="ai-reply">${esc(res&&res.reply||'')}</div>${acts.length?`<div class="ai-list">${acts.map((a,i)=>`<label class="ai-it"><input type="checkbox" data-ai="${i}" checked><span>${AIDESC(a)}</span></label>`).join('')}</div>`:''}`;
+    MODAL.acts=acts;const hasT=acts.some(a=>a.op==='add_event'&&!a.allday&&a.start);const wantT=/종일\s*표시\s*해제|글자로만|글자로\s*(만\s*)?보|막대\s*(말고|대신|없이)/.test(text)||acts.some(a=>a.text_only===true);
+    $('#aiOut').innerHTML=`<div class="ai-reply">${esc(res&&res.reply||'')}</div>${hasT?`<label class="row ai-txt"><input type="checkbox" id="aiTxt" ${wantT?'checked':''}> 시간 있는 일정은 월간 캘린더에 종일 표시 해제 <small>(글자로만 보기)</small></label>`:''}${acts.length?`<div class="ai-list">${acts.map((a,i)=>`<label class="ai-it"><input type="checkbox" data-ai="${i}" checked><span>${AIDESC(a)}</span></label>`).join('')}</div>`:''}`;
     $('#aiAct').innerHTML=`<button class="btn" data-act="m-cancel">닫기</button><button class="btn" data-act="ai-again">다시 말하기</button>${acts.length?'<button class="btn primary" data-act="ai-apply">반영하기</button>':''}`;
   }catch(e){console.warn(e);$('#aiOut').innerHTML='';const b=$('#aiAct [data-act="ai-run"]');if(b)b.disabled=false;
     $('#aiErr').textContent=e&&e.code==='nosample'?'AI를 부를 수 없는 화면이에요. 클로드 안에서 연 페이스메이커에서 써 주세요.':e&&e.code==='noai'?'AI 연결이 아직 준비되지 않았어요.':e&&e.code==='nokey'?'AI 키를 먼저 등록해 주세요. 아래 ‘AI 키 설정’을 눌러요.':e&&e.code==='badkey'?'AI 키가 맞지 않아요. ‘AI 키 설정’에서 다시 넣어 주세요.':e&&e.code==='billing'?'API 크레딧이 없거나 결제 한도에 닿았어요. console.anthropic.com에서 확인해 주세요.':e&&e.code==='not_granted'?'AI 사용을 허용해야 쓸 수 있어요.':e&&e.code==='rate_limited'?'잠깐 너무 많이 썼어요. 조금 뒤에 다시 해 주세요.':e&&e.code==='fetch'?'링크를 열지 못했어요. 내용을 복사해 붙여 넣어 주세요.':'처리하지 못했어요. 다시 시도해 주세요.'+(e&&e.message?' ('+e.message+')':'');}
 }
 function aiApply(){
-  const acts=MODAL.acts||[];let n=0,nt0=0;const T=S.time;const okT=v=>/^\d{1,2}:\d{2}$/.test(v||'')?v.padStart(5,'0'):'';const okD=v=>/^\d{4}-\d{2}-\d{2}$/.test(v||'');const okC=k=>ECATS[k]?k:'mine';
+  const acts=MODAL.acts||[];let n=0,nt0=0;const T=S.time;const TXT=!!($('#aiTxt')&&$('#aiTxt').checked);const okT=v=>/^\d{1,2}:\d{2}$/.test(v||'')?v.padStart(5,'0'):'';const okD=v=>/^\d{4}-\d{2}-\d{2}$/.test(v||'');const okC=k=>ECATS[k]?k:'mine';
   $$('[data-ai]').forEach(cb=>{if(!cb.checked)return;const a=acts[+cb.dataset.ai];if(!a)return;
-    if(a.op==='add_event'&&okD(a.date)&&a.title){const tm=a.allday?'':okT(a.start),te=a.allday?'':okT(a.end);const ne={id:uid(),t:String(a.title).slice(0,80),cat:okC(a.cat),allday:!tm,tm,te:tm&&te&&te>tm?te:'',memo:String(a.memo||'').slice(0,300),p:String(a.place||'').slice(0,80)};if(!tm&&okD(a.end_date)&&a.end_date>a.date)ne.ed=a.end_date;(T.events[a.date]=T.events[a.date]||[]).push(ne);n++;}
+    if(a.op==='add_event'&&okD(a.date)&&a.title){const tm=a.allday?'':okT(a.start),te=a.allday?'':okT(a.end);const ne={id:uid(),t:String(a.title).slice(0,80),cat:okC(a.cat),allday:!tm,tm,te:tm&&te&&te>tm?te:'',memo:String(a.memo||'').slice(0,300),p:String(a.place||'').slice(0,80)};if(tm&&TXT)ne.txt=true;if(!tm&&okD(a.end_date)&&a.end_date>a.date)ne.ed=a.end_date;(T.events[a.date]=T.events[a.date]||[]).push(ne);n++;}
     else if(a.op==='add_task'&&okD(a.date)&&a.title){const t={id:uid(),t:String(a.title).slice(0,80),done:false,pri:0,sub:[],open:false};const tm=okT(a.start);if(tm){t.tm=tm;const te=okT(a.end);t.te=te&&te>tm?te:fmtMin(Math.min(1439,toMin(tm)+60));}TD(a.date,true).tasks.push(t);tdDirty(a.date);nt0++;}
     else if(a.op==='add_repeat'&&a.title&&okT(a.start)){const f=['d','w','m','y'].includes(a.freq)?a.freq:'w';const from=okD(a.from)?a.from:TODAYK;const d=parseD(from);const r={f,n:Math.max(1,+a.interval||1),end:okD(a.until)?'until':'none'};
       if(f==='w')r.days=(Array.isArray(a.weekdays)&&a.weekdays.length?a.weekdays:[dowMon(d)]).map(Number).filter(x=>x>=0&&x<7);if(f==='m'||f==='y'){r.mode='date';r.md=d.getDate();r.nth=Math.ceil(d.getDate()/7);r.wd=dowMon(d);}if(f==='y')r.mon=d.getMonth();
@@ -2121,7 +2123,7 @@ function aiApply(){
       T.blocks.push({id:uid(),r,s:s1,e:e1,t:String(a.title).slice(0,80),p:String(a.place||''),c:okC(a.cat),cal:f!=='w',memo:'',from,until:okD(a.until)?a.until:'',ex:[]});n++;}
     else if(a.op==='update_event'&&okD(a.date)){const e=findEv(a.date,a.id);if(!e)return;const c=a.changes||{};
       if(c.title)e.t=String(c.title).slice(0,80);if(c.place!=null&&c.place!=='')e.p=String(c.place);if(c.memo)e.memo=String(c.memo);if(c.cat&&ECATS[c.cat])e.cat=c.cat;
-      if(c.allday===true){e.allday=true;e.tm='';e.te='';}if(okT(c.start)){e.tm=okT(c.start);e.allday=false;}if(okT(c.end))e.te=okT(c.end);
+      if(c.allday===true){e.allday=true;e.tm='';e.te='';}if(okT(c.start)){e.tm=okT(c.start);e.allday=false;}if(okT(c.end))e.te=okT(c.end);if(c.text_only===true&&e.tm)e.txt=true;else if(c.text_only===false)delete e.txt;
       if(okD(c.date)&&c.date!==a.date)moveEv(a.date,e.id,c.date);n++;}
     else if(a.op==='delete_event'&&okD(a.date)){const arr=T.events[a.date]||[];const b=arr.length;T.events[a.date]=arr.filter(x=>x.id!==a.id);if(!T.events[a.date].length)delete T.events[a.date];if(b!==(T.events[a.date]||[]).length)n++;}
   });
@@ -2659,7 +2661,7 @@ load();
 })();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{});
-(function(){const B="a3d1eb32ab";
+(function(){const B="435a2046c4";
 async function chk(){try{const v=await fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json());
 if(!v||v.b===B||sessionStorage.getItem("pm-upd")===v.b)return;
 const r=await fetch("index.html?v="+v.b,{cache:"reload"});if(!r.ok)return;const h=await r.text();
