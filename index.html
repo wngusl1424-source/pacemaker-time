@@ -1495,9 +1495,9 @@ function buildSpans(){SPANS=[];if(!S.time)return;Object.entries(S.time.events).f
 function evsOn(dk){const sp=SPANS.filter(x=>x.dk<dk&&x.e.ed>=dk);return [...sp,...(S.time.events[dk]||[]).map(e=>({dk,e}))];}
 const md=k=>`${+k.slice(5,7)}/${+k.slice(8)}`;
 function calItems(dk,mode){
-  const bl=blocksOn(dk).filter(b=>calOn(b,dk)).sort((a,b)=>toMin(a.s)-toMin(b.s)).map(b=>({allday:true,t:`${b.t} ${hourRange(b.s,b.e)}`,cat:catOf(b.c),k:'0'+b.s,bid:b.id}));
+  const bl=blocksOn(dk).filter(b=>calOn(b,dk)).sort((a,b)=>toMin(a.s)-toMin(b.s)).map(b=>({allday:true,t:`${b.t} ${hourRange(b.s,b.e)}`,cat:catOf(b.c),k:'1'+b.s+'0',bid:b.id}));
   const src=(mode==='own'?(S.time.events[dk]||[]).map(e=>({dk,e})):evsOn(dk)).filter(x=>!x.e.noM);
-  const ev=src.filter(x=>!(mode==='grid'&&x.e.ed&&x.e.ed>x.dk)).map((x,i)=>{const e=x.e;const ad=barM(e)||!!(e.ed&&e.ed>x.dk);return {allday:ad,t:e.t+(e.ed&&e.ed>x.dk&&mode!=='grid'?` (${md(x.dk)}~${md(e.ed)})`:''),tm:e.tm,cat:evCat(e),id:e.id,sdk:x.dk,k:(ad?'1':'2')+(ad?String(i).padStart(3,'0'):(e.tm||''))};});
+  const ev=src.filter(x=>!(mode==='grid'&&x.e.ed&&x.e.ed>x.dk)).map((x,i)=>{const e=x.e;const ad=barM(e)||!!(e.ed&&e.ed>x.dk);return {allday:ad,t:e.t+(e.ed&&e.ed>x.dk&&mode!=='grid'?` (${md(x.dk)}~${md(e.ed)})`:''),tm:e.tm,cat:evCat(e),id:e.id,sdk:x.dk,k:e.tm&&!(e.ed&&e.ed>x.dk)?'1'+e.tm+'1':'0'+String(i).padStart(3,'0')};});
   return [...bl,...ev].sort((a,b)=>a.k.localeCompare(b.k));
 }
 const evHtml=x=>{const c=ECATS[x.cat]||ECATS.mine;return x.allday?`<span class="evb" style="background:${c[1]};color:${c[2]}">${esc(x.t)}</span>`:`<span class="evt" style="color:${c[3]}"><b>${ampm(x.tm)}</b>${esc(x.t)}</span>`;};
@@ -2661,7 +2661,7 @@ load();
 })();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{});
-(function(){const B="435a2046c4";
+(function(){const B="7c11b45d74";
 async function chk(){try{const v=await fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json());
 if(!v||v.b===B||sessionStorage.getItem("pm-upd")===v.b)return;
 const r=await fetch("index.html?v="+v.b,{cache:"reload"});if(!r.ok)return;const h=await r.text();
