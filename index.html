@@ -2295,7 +2295,7 @@ function ttDrop(){
     return;
   }else if(el.dataset.kind==='k'){
     const dk=el.dataset.dk;const d0=TD(dk,true);let tk=d0.tasks.find(x=>x.id===el.dataset.id);if(!tk){render(true);return;}
-    if(D.copy){const c=JSON.parse(JSON.stringify(tk));c.id=uid();c.pri=0;c.done=false;delete c.wk;delete c.carried;delete c.drop;(c.sub||[]).forEach(z=>{z.id=uid();z.done=false;});d0.tasks.push(c);tk=c;}
+    if(D.copy){const c=JSON.parse(JSON.stringify(tk));c.id=uid();c.pri=0;c.done=false;delete c.wk;delete c.carried;delete c.drop;(c.sub||[]).forEach(z=>{z.id=uid();});d0.tasks.push(c);tk=c;}
     let s0=toMin(tk.tm),e0=tk.te?toMin(tk.te):s0+60;if(e0<=s0)e0=s0+60;
     if(D.resize){e0=Math.min(24*60,Math.max(s0+SNAP,e0+dmin));}
     else{const dur=e0-s0;s0=Math.max(0,Math.min(24*60-dur,s0+dmin));e0=s0+dur;}
@@ -2661,7 +2661,7 @@ load();
 })();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{});
-(function(){const B="7c11b45d74";
+(function(){const B="cf710a6cca";
 async function chk(){try{const v=await fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json());
 if(!v||v.b===B||sessionStorage.getItem("pm-upd")===v.b)return;
 const r=await fetch("index.html?v="+v.b,{cache:"reload"});if(!r.ok)return;const h=await r.text();
