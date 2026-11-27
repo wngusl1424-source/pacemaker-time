@@ -955,27 +955,51 @@ const TR={
 };
 function sheetApply(all){const r=sheetBuild(all);const x=JSON.parse(JSON.stringify({core:S.core,reviews:S.reviews,months:S.months}));x.time=r.time;x.todo=r.todo;
   const had=dirty.has('time');applyLoaded(x);if(PWA||!had)dirty.delete('time');}
-async function sheetPull(force){
-  if(SHEET_BUSY||(!force&&Date.now()-LASTPULL<15000))return;LASTPULL=Date.now();
-  try{const all=await TR.getAll();SHEET_OK=true;
-    if(!Object.keys(all).length){SYNCED={};if(!PWA||S.time.blocks.length||Object.keys(S.time.events).length)await sheetFlush(true);return;}
-    if(sheetPend()){SYNCED=all;await sheetFlush(true);return;}
-    SYNCED=all;const snap=JSON.stringify({t:S.time,d:S.todo});sheetApply(all);
-    if(JSON.stringify({t:S.time,d:S.todo})!==snap){cacheLocal();if(!MODAL)render(true);}
-    if(S.time.mig&&JSON.parse(all.meta||'{}').mig!==S.time.mig)sheetSchedule();
-    setSave('saved');
-  }catch(e){console.warn('sheet pull',e);SHEET_OK=false;setSave(e&&e.code==='nocfg'?'local':'error');}
+/* ── 3-way 병합: 마지막으로 맞춘 상태(BASE)·내 기기(L)·시트(R)를 비교해서, 다른 기기 변경을 덮어쓰지 않게 ── */
+const BASEK='pm-sheet-base';
+const OWNK=k=>k==='blocks'||k==='cats'||k==='rem'||k==='meta'||k.startsWith('ev:')||k.startsWith('todo:');
+const baseGet=()=>{try{return JSON.parse(localStorage.getItem(BASEK)||'null');}catch(e){return null;}};
+const baseSet=m=>{try{localStorage.setItem(BASEK,JSON.stringify(m));}catch(e){}};
+function m3list(b,l,r){const J=x=>JSON.stringify(x);const bm=new Map((b||[]).filter(x=>x&&x.id).map(x=>[x.id,J(x)]));const lm=new Map((l||[]).filter(x=>x&&x.id).map(x=>[x.id,x]));const rm=new Map((r||[]).filter(x=>x&&x.id).map(x=>[x.id,x]));
+  const pick=id=>{const B=bm.get(id),L=lm.get(id),R=rm.get(id);const Ls=L?J(L):undefined,Rs=R?J(R):undefined;if(Ls===Rs)return L;if(Ls===B)return R;if(Rs===B)return L;return L||R;};
+  const out=[],seen=new Set();[...(l||[]),...(r||[])].forEach(x=>{if(!x||!x.id||seen.has(x.id))return;seen.add(x.id);const v=pick(x.id);if(v)out.push(v);});return out;}
+const m3s=(b,l,r)=>{const J=JSON.stringify;return J(l)===J(r)?l:J(l)===J(b)?r:l;};
+function m3ev(b,l,r){const fl=o=>{const a=[];Object.entries(o||{}).forEach(([dk,arr])=>(arr||[]).forEach(e=>a.push(Object.assign({},e,{__dk:dk}))));return a;};
+  const out={};m3list(b?fl(b):null,fl(l),fl(r)).forEach(e=>{const dk=e.__dk;const c=Object.assign({},e);delete c.__dk;(out[dk]=out[dk]||[]).push(c);});return out;}
+function m3todo(b,l,r){const out={};const ks=new Set([...Object.keys(l||{}),...Object.keys(r||{})]);
+  ks.forEach(k=>{const B=b&&b[k],L=l&&l[k],R=r&&r[k];if(!L&&B&&JSON.stringify(R)===JSON.stringify(B))return;if(!R&&B&&JSON.stringify(L)===JSON.stringify(B))return;
+    const o=Object.assign({},R||{},L||{});o.tasks=m3list(B?B.tasks:(b?[]:null),L?L.tasks:[],R?R.tasks:[]);if(!k.startsWith('wk:'))o.memo=m3s(B?B.memo:undefined,L?L.memo:'',R?R.memo:'')||'';out[k]=o;});return out;}
+function m3key(k,B,L,R){const E=k.startsWith('ev:')||k.startsWith('todo:')?'{}':undefined;if(L===undefined)L=E;if(R===undefined)R=E;
+  if(L===R)return L;if(B!==undefined&&L===B)return R;if(B!==undefined&&R===B)return L;
+  try{const P=x=>x?JSON.parse(x):null;const b=B===undefined?null:P(B);
+    if(k.startsWith('ev:'))return JSON.stringify(m3ev(b,P(L),P(R)));
+    if(k.startsWith('todo:'))return JSON.stringify(m3todo(b,P(L),P(R)));
+    if(k==='blocks')return JSON.stringify(m3list(b,P(L),P(R)));}catch(e){console.warn('merge',k,e);}
+  return L;}
+function ownParts(){const p=sheetParts();Object.keys(p).forEach(k=>{if(!OWNK(k))delete p[k];});return p;}
+async function sheetSync(force){
+  if(SHEET_BUSY){SHEET_AGAIN=true;return;}SHEET_BUSY=true;
+  try{const all=await TR.getAll();SHEET_OK=true;LASTPULL=Date.now();
+    const R={};Object.keys(all).forEach(k=>{if(OWNK(k))R[k]=all[k];});
+    const L=ownParts();const base=baseGet();const pend=sheetPend();
+    let M;
+    if(!Object.keys(R).length){M=L;}
+    else if(!base){M=Object.assign({},L,R);}
+    else{M={};const ks=new Set([...Object.keys(L),...Object.keys(R),...Object.keys(base||{})]);ks.forEach(k=>{const v=m3key(k,base?base[k]:undefined,L[k],R[k]);if(v!==undefined)M[k]=v;});}
+    if(JSON.stringify(ownParts())!==JSON.stringify(L)){SHEET_AGAIN=true;throw {code:'retry'};}
+    const same=k=>(M[k]===undefined?'{}':M[k])===(L[k]===undefined?'{}':L[k]);
+    if(![...new Set([...Object.keys(M),...Object.keys(L)])].every(same)){const snap=JSON.stringify({t:S.time,d:S.todo});sheetApply(M);if(JSON.stringify({t:S.time,d:S.todo})!==snap){cacheLocal();if(!MODAL)render(true);}}
+    const puts={};Object.keys(M).forEach(k=>{const rv=R[k]===undefined&&(k.startsWith('ev:')||k.startsWith('todo:'))?'{}':R[k];if(M[k]!==rv)puts[k]=M[k];});
+    if(Object.keys(puts).length)await TR.put(puts);
+    SYNCED=Object.assign({},all,puts);baseSet(M);sheetPend(false);setSave('saved');
+  }catch(e){if(e&&e.code==='retry'){}else{console.warn('sheet sync',e);SHEET_OK=false;setSave(e&&e.code==='nocfg'?'local':'error');}}
+  SHEET_BUSY=false;if(SHEET_AGAIN){SHEET_AGAIN=false;setTimeout(()=>sheetSync(),50);}
 }
-function sheetSchedule(){sheetPend(true);if(!PWA&&!SHEET_OK&&SYNCED===null)return;setSave('saving');clearTimeout(SHEET_T);SHEET_T=setTimeout(()=>sheetFlush(),800);}
-async function sheetFlush(force){
-  if(SHEET_BUSY){SHEET_AGAIN=true;return;}if(SYNCED===null&&!force)return;
-  SHEET_BUSY=true;
-  try{const parts=sheetParts();const puts={};Object.entries(parts).forEach(([k,v])=>{if(!SYNCED||SYNCED[k]!==v)puts[k]=v;});
-    if(Object.keys(puts).length){await TR.put(puts);SYNCED=Object.assign(SYNCED||{},puts);}
-    sheetPend(false);setSave('saved');}
-  catch(e){console.warn('sheet push',e);setSave('error');}
-  SHEET_BUSY=false;if(SHEET_AGAIN){SHEET_AGAIN=false;sheetFlush();}
-}
+async function sheetPull(force){if(!force&&Date.now()-LASTPULL<5000)return;await sheetSync(force);}
+function sheetSchedule(){sheetPend(true);if(!PWA&&!SHEET_OK&&SYNCED===null)return;setSave('saving');clearTimeout(SHEET_T);SHEET_T=setTimeout(()=>sheetSync(),800);}
+async function sheetFlush(force){await sheetSync(force);}
+setInterval(()=>{if(document.visibilityState==='visible'&&(SHEET_OK||PWA)&&!SHEET_BUSY)sheetPull(false);},30000);
+window.addEventListener('focus',()=>{if(SHEET_OK||PWA)sheetPull(false);});
 async function sheetInit(){await sheetPull(true);
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')sheetPull(false);});}
 async function pwaLoad(){
@@ -2661,7 +2685,7 @@ load();
 })();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{});
-(function(){const B="cf710a6cca";
+(function(){const B="d09eb861cd";
 async function chk(){try{const v=await fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json());
 if(!v||v.b===B||sessionStorage.getItem("pm-upd")===v.b)return;
 const r=await fetch("index.html?v="+v.b,{cache:"reload"});if(!r.ok)return;const h=await r.text();
